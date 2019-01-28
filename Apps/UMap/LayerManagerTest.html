@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LayerManager测试</title>
+    <script type="text/javascript" src="../../ThirdParty/requirejs-2.1.20/require.js"></script>
+    <script type="text/javascript">
+        if (typeof require === 'function') {
+            require.config({
+                baseUrl : '../../Source',
+                waitSeconds : 120
+            });
+        }
+    </script>
+</head>
+
+<body>
+<link href="zTreeStyle/zTreeStyle.css" rel="stylesheet">
+
+<style>
+    @import url(../Sandcastle/templates/bucket.css);
+
+    #cesiumContainer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        overflow: hidden;
+        padding: 0;
+        font-family: sans-serif;
+    }
+
+    #tree {
+        background-color: wheat;
+        right: 50px;
+        position: absolute;
+        margin-left: 100px;
+        margin-top: 50px;
+        overflow: auto;
+    }
+</style>
+
+<div id="cesiumContainer"></div>
+<div id="tree" class="zTree"></div>
+
+<script type="text/javascript" src="jquery-1.8.2.min.js"></script>
+<script type="text/javascript" src="jquery.ztree.all.js"></script>
+<script>
+    var options = {
+        id : '',
+        imgPath : '',
+        conditionField : '',
+        layerCategory : '',
+        org_code : ''
+    };
+
+    var layerManager;
+    function startup(Cesium) {
+        'use strict';
+        var viewer = initCesiumViewer(Cesium);
+        layerManager = new Cesium.LayerManager({
+            viewer : viewer,
+            url:'http://180.167.113.51:9090/beyonserver/wfs'
+        });
+        initTree(Cesium);
+        var handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+        handler.setInputAction(function(movement) {
+             var feature = viewer.scene.pick(movement.position);
+            if(feature.primitive && feature.primitive._owner){
+                viewer.selectedEntity = feature.primitive._owner;
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    }
+
+    function initCesiumViewer(Cesium) {
+        'use strict';
+
+        var domProvider = new Cesium.WebMapServiceImageryProvider({
+            url : 'http://180.167.113.51:9090/beyonserver/wms',
+            layers : 'beyondb:img_glob_0_7',
+            format : 'image/jpeg',
+            maximumLevel : 18,
+            enablePickFeatures : false
+        });
+        var viewer = new Cesium.Viewer('cesiumContainer', {
+            imageryProvider : domProvider,
+            baseLayerPicker : false,
+            animation : false,
+            timeline : false,
+            homeButton : false,
+            geocoder : false,
+            navigationHelpButton : false,
+            fullscreenButton : false,
+            scene3DOnly : true,
+            infoBox : true,
+            selectionIndicator : false,
+            contextOptions : {allowTextureFilterAnisotropic : false, webgl : {preserveDrawingBuffer : true}}
+        });
+
+        viewer.scene.fog.enabled = false;
+        viewer.scene.globe.depthTestAgainstTerrain = false;
+        return viewer;
+    }
+
+    //初始化树结构
+    function initTree(Cesium) {
+        var setting = {
+
+            view : {
+                dblClickExpand : true,
+                showLine : false,
+                selectedMulti : false,
+                showIcon : false
+            },
+
+            check : {
+                enable : true,
+                chkboxType : {'Y' : 'ps', 'N' : 's'}
+            },
+
+            data : {
+                simpleData : {
+                    enable : true,
+                    idKey : 'id',
+                    pIdKey : 'parentId',
+                    rootPId : ''
+                },
+                key : {
+                    checked : 'show',
+                    children : 'childs'
+
+                }
+            },
+
+            callback : {
+                beforeClick : beforeClick,
+                onCheck : zTreeOnClick
+            }
+        };
+
+        fetchGeoJson('layerList.json', Cesium).then(function(JsonObj) {
+            loadInitData(JsonObj);
+        }).otherwise(function(error) {
+            console.log(error);
+        });
+
+        function loadInitData(JsonObj) {
+            if (JsonObj) {
+                var t = $('#tree');
+                $.fn.zTree.init(t, setting, JsonObj.data);
+            }
+        }
+
+        function zTreeOnClick(event, treeId, treeNode) {
+            var childs = treeNode.childs;
+            var layerInfo = [];
+            if (childs && childs instanceof Array) {
+                for (var index = 0; index < childs.length; index++) {
+                    var children = childs[index];
+                    if (children.childs) {
+                        for (var j = 0; j < children.childs.length; j++) {
+                            var child = children.childs[j];
+                            var data = {
+                                'type' : child.type,
+                                'labelField' : child.labelField,
+                                'showLabel' : child.showLabel,
+                                'layerStyle' : eval('(' + child.style + ')'),
+                                'layerProperty' : eval('(' + child.property + ')'),
+                                'refreshable' : child.refreshable,
+                                'imgPath' : 'camera_qiangji.png',
+                                'layerIcons' : JSON.parse(child.layerIcons),
+                                'layerName' : child.resourceName,
+                                'codeName' : child.conditionField,
+                                'code' : children.org_code,
+                                'layerSelectable' : child.layerSelectable,
+                                'name' : child.name,
+                                'layerCategory' : child.layerCategory
+                            };
+                            layerInfo.push(data);
+                        }
+                    }
+                }
+            }
+            var show = treeNode.show;
+            if(show){
+                layerManager.addCollection(layerInfo);
+
+            }else{
+                layerManager.removeAll();
+            }
+
+            return layerInfo;
+        }
+
+        //最小子节点
+        // if (!treeNode.leaf) {
+        //     var l = layer[treeNode.getIndex()];
+        //     var children = l.children;
+        //     for (var i = 0; i < children.length; i++) {
+        //         var space = nameSpace + children[i].layerCategory;
+        //         var url = baseUrl + space;
+        //         url += '&cql_filter=(' + children[i].conditionField + '%20' + 'like' + '%20' + "'" + '%25' + children[i].org_code + '%25' + "'" + ')';
+        //         //url +='&cql_filter=(code<100)';
+        //
+        //         fetchGeoJson(url, Cesium).then(function(JsonObj) {
+        //             var features = JsonObj.features;
+        //             totalNum += features.length;
+        //             console.log(totalNum);
+        //
+        //             for (var i = 0; i < features.length; i++) {
+        //                 var position = Cesium.Cartesian3.fromDegrees(features[i].geometry.coordinates[0], features[i].geometry.coordinates[1], 1000);
+        //                 var text = features[i].properties.name;
+        //                 //useDataSource(dataSource,position);
+        //                 //useViewerEntityCollection(viewer,position);
+        //                 useBillboardCollection(billboardCollection, position);
+        //             }
+        //
+        //             // var dataSource = Cesium.GeoJsonDataSource.load(JsonObj);
+        //             // viewer.dataSources.add(dataSource);
+        //             // doClustering(dataSource);
+        //             features = null;
+        //             JsonObj = null;
+        //
+        //         }, function(error) {
+        //             console.log(error);
+        //         });
+        //     }
+        //
+        // } else {
+        //
+        // }
+        //
+        // $.fn.zTree.getZTreeObj('tree').updateNode(treeNode);
+        // return false;
+    }
+
+    function beforeClick(treeId, treeNode) {
+        var zTree = $.fn.zTree.getZTreeObj('tree');
+        //第二个参数对应于 setting.data.key.checked
+        zTree.checkNode(treeNode, !treeNode.show, null, true);
+        return false;
+    }
+    //获取多层级下的最小子节点集合
+    function getOriginalParent(data) {
+        function getAllChildren(json, childrenArray) {
+            if (!childrenArray || !(childrenArray instanceof Array)) {
+                childrenArray = [1024];
+            }
+            if (!(json instanceof Array)) {
+                childrenArray.push(json);
+                return childrenArray;
+            }
+            json.forEach(function(v) {
+                var child = v.childs;
+
+                for (var pro in options) {
+                    if (options.hasOwnProperty(pro)) {
+                        if (v[pro]) {
+                            options[pro] = v[pro];
+                        }
+                    }
+                }
+
+                if (child && child instanceof Array) {
+                    // options.parent = v.id;
+                    getAllChildren(child, childrenArray);
+                } else {
+                    childrenArray.push(copy(options));
+                }
+            });
+        }
+
+        //浅拷贝
+        function copy(obj) {
+            var p = {};
+            for (var pro in obj) {
+                if (obj.hasOwnProperty(pro)) {
+                    p[pro] = obj[pro];
+                    //eval("p." + pro + "=obj." + pro);
+                }
+            }
+            return p;
+        }
+
+        if (!(data instanceof Array)) {
+            return [];
+        }
+        var original = [];
+        data.forEach(function(v) {
+            var o = {
+                id : v.id,
+                children : []
+            };
+            getAllChildren(v.childs, o.children);
+            original.push(o);
+        });
+        return original;
+    }
+
+    //请求获取json
+    function fetchGeoJson(url, Cesium) {
+        var resource = Cesium.Resource.createIfNeeded(url);
+        return resource.fetchJson();
+    }
+
+    if (typeof Cesium !== 'undefined') {
+        startup(Cesium);
+    } else if (typeof require === 'function') {
+        require(['Cesium'], startup);
+    }
+
+</script>
+
+</body>
+
+</html>

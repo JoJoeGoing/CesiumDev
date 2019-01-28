@@ -1,0 +1,732 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="3782b932-cdcb-4939-bac6-5195dd8561fe" name="Default Changelist" comment="功能源码" />
+    <ignored path="$PROJECT_DIR$/Build/" />
+    <ignored path="$PROJECT_DIR$/Instrumented/" />
+    <ignored path=".concierge/" />
+    <ignored path=".externalToolBuilders/" />
+    <ignored path=".idea/" />
+    <ignored path="./" />
+    <ignored path=".vscode/" />
+    <ignored path=".settings/" />
+    <ignored path="Documentation/" />
+    <ignored path="launches/" />
+    <ignored path="Specs/" />
+    <ignored path="ThirdParty/" />
+    <ignored path="Tools/eslint-config-cesium/" />
+    <ignored path="Tools/jscoverage-0.5.1/" />
+    <ignored path="Tools/jsdoc/cesium_template/" />
+    <ignored path="Tools/jsdoc/cesiumTags.js" />
+    <ignored path="Tools/jsdoc/conf.json" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+        <option value="JavaScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>childData[f]</find>
+      <find>_removeEventListener</find>
+      <find>_clusterEvent</find>
+      <find>newClusters</find>
+      <find>_previousClusters</find>
+      <find>clusteredLabelCollection</find>
+      <find>_clusterBillboardCollection</find>
+      <find>_collection</find>
+      <find>MersenneTwister</find>
+      <find>_layerStyleOptions</find>
+      <find>MarkerPrimitive</find>
+      <find>_showLabel</find>
+      <find>addCluster</find>
+      <find>collection</find>
+      <find>_markers</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>child</replace>
+      <replace>Marker</replace>
+    </replaceStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubProjectSettings">
+    <option name="CREATE_PULL_REQUEST_DEFAULT_BRANCH" value="master" />
+    <option name="CREATE_PULL_REQUEST_DEFAULT_REPO_USER" value="JoJoeGoing" />
+    <option name="CREATE_PULL_REQUEST_DEFAULT_REPO_NAME" value="CesiumDev" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/Source/UMap/Layer/WebFeatureProvider.js" />
+        <option value="$PROJECT_DIR$/Apps/UMap/MapInterface.js" />
+        <option value="$PROJECT_DIR$/Source/Scene/BillboardCollection.js" />
+        <option value="$PROJECT_DIR$/Source/DataSources/EntityCluster.js" />
+        <option value="$PROJECT_DIR$/Source/Core/Event.js" />
+        <option value="$PROJECT_DIR$/Source/UMap/Primitive/MarkerPrimitive.js" />
+        <option value="$PROJECT_DIR$/Apps/UMap/options.js" />
+        <option value="$PROJECT_DIR$/Source/UMap/OptionsUtil.js" />
+        <option value="$PROJECT_DIR$/Source/UMap/Layer/LayerManager.js" />
+        <option value="$PROJECT_DIR$/Apps/UMap/LayerManagerTest.html" />
+        <option value="$PROJECT_DIR$/Source/UMap/Primitive/Marker.js" />
+        <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$PROJECT_DIR$/Source/UMap/Layer/MarkerLayer.js" />
+        <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/.gitingore" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="29" />
+    <option name="y" value="46" />
+    <option name="width" value="1400" />
+    <option name="height" value="820" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="CesiumDev" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CesiumDev" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="editor.config.ad.shown" value="true" />
+    <property name="js.buildTools.gulp.gulp_package_dir" value="$PROJECT_DIR$/node_modules/gulp" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.standard" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.standard" value="project" />
+    <property name="node.js.selected.package.eslint" value="E:\git\CesiumDev\node_modules\eslint" />
+    <property name="node.js.selected.package.standard" value="E:\git\CesiumDev\node_modules\eslint" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="settings.editor.selected.configurable" value="MTConfigurable" />
+    <property name="ts.external.directory.path" value="C:\Program Files\JetBrains\WebStorm 183.4588.47\plugins\JavaScriptLanguage\jsLanguageServicesImpl\external" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\nginx_server\html\Cesium1.53\Source\Assets\Images" />
+      <recent name="E:\nginx_server\html\Cesium1.53\Apps\UMap" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Gulp.js.build">
+    <configuration default="true" type="js.build_tools.gulp">
+      <node-interpreter>project</node-interpreter>
+      <node-options />
+      <gulpfile />
+      <tasks />
+      <arguments />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="build" type="js.build_tools.gulp" temporary="true">
+      <node-interpreter>project</node-interpreter>
+      <node-options />
+      <gulpfile>$PROJECT_DIR$/gulpfile.js</gulpfile>
+      <tasks>
+        <task>build</task>
+      </tasks>
+      <arguments />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="release" type="js.build_tools.gulp" temporary="true">
+      <node-interpreter>project</node-interpreter>
+      <node-options />
+      <gulpfile>$PROJECT_DIR$/gulpfile.js</gulpfile>
+      <tasks>
+        <task>release</task>
+      </tasks>
+      <arguments />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="build" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="build" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="generateDocumentation" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="generateDocumentation" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="npm.generateDocumentation" />
+        <item itemvalue="Gulp.js.release" />
+        <item itemvalue="Gulp.js.build" />
+        <item itemvalue="npm.build" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3782b932-cdcb-4939-bac6-5195dd8561fe" name="Default Changelist" comment="" />
+      <created>1548210368593</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1548210368593</updated>
+      <workItem from="1548210369720" duration="73445000" />
+      <workItem from="1548642303071" duration="3919000" />
+      <workItem from="1548654253711" duration="603000" />
+      <workItem from="1548654969706" duration="3539000" />
+      <workItem from="1548659727190" duration="1391000" />
+    </task>
+    <task id="LOCAL-00001" summary="更新Readme说明文档">
+      <created>1548646375456</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1548646375456</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="82897000" />
+  </component>
+  <component name="TodoView" selected-index="3">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-8" y="-8" width="1456" height="876" extended-state="6" />
+    <layout>
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4944134" visible="true" weight="0.287024" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Gulp" order="2" sideWeight="0.50558656" side_tool="true" weight="0.287024" />
+      <window_info id="npm" order="3" sideWeight="0.50558656" side_tool="true" weight="0.287024" />
+      <window_info id="Favorites" order="4" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.32960895" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32960895" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" weight="0.70111734" />
+      <window_info anchor="bottom" id="TypeScript" order="9" />
+      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
+      <window_info anchor="bottom" id="Terminal" order="11" weight="0.32960895" />
+      <window_info anchor="bottom" id="Messages" order="12" weight="0.32960895" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list />
+          </value>
+        </entry>
+        <entry key="User">
+          <value>
+            <list />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="更新Readme说明文档" />
+    <MESSAGE value="功能源码" />
+    <option name="LAST_COMMIT_MESSAGE" value="功能源码" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/Source/Core/defaultValue.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Core/Resource.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="6" column="14" selection-start-line="6" selection-start-column="11" selection-end-line="6" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Scene/WebMapTileServiceImageryProvider.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="192" column="38" lean-forward="true" selection-start-line="192" selection-start-column="38" selection-end-line="192" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Scene/ImageryProvider.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="393">
+          <caret line="37" column="28" selection-start-line="37" selection-start-column="28" selection-end-line="37" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/UMap/Layer/WebFeatureProvider.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="313">
+          <caret line="49" selection-start-line="49" selection-end-line="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/DataSources/Property.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1123">
+          <caret line="27" column="13" selection-start-line="27" selection-start-column="13" selection-end-line="27" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/DataSources/createPropertyDescriptor.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="159">
+          <caret line="17" column="49" lean-forward="true" selection-start-line="17" selection-start-column="49" selection-end-line="17" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Core/combine.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="312">
+          <caret line="13" column="15" selection-start-line="13" selection-start-column="15" selection-end-line="13" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Scene/BillboardCollection.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="129">
+          <caret line="466" column="49" selection-start-line="466" selection-start-column="49" selection-end-line="466" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Apps/UMap/template.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="264">
+          <caret line="23" column="12" lean-forward="true" selection-start-line="23" selection-start-column="12" selection-end-line="23" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html" />
+    <entry file="file://$PROJECT_DIR$/Apps/UMap/layerList.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="826">
+          <caret line="152" column="21" selection-start-line="152" selection-start-column="13" selection-end-line="152" selection-end-column="21" />
+          <folding>
+            <element signature="e#178#498#0" />
+            <element signature="e#500#820#0" />
+            <element signature="e#822#1142#0" />
+            <element signature="e#1144#1464#0" />
+            <element signature="e#1466#1786#0" />
+            <element signature="e#1788#2108#0" />
+            <element signature="e#2110#2430#0" />
+            <element signature="e#2432#2752#0" />
+            <element signature="e#2754#3080#0" />
+            <element signature="e#5809#7142#0" />
+            <element signature="e#7216#10185#0" />
+            <element signature="e#7434#8778#0" />
+            <element signature="e#8780#10113#0" />
+            <element signature="e#10404#13085#0" />
+            <element signature="e#10405#11749#0" />
+            <element signature="e#11751#13084#0" />
+            <element signature="e#13158#16127#0" />
+            <element signature="e#13375#16056#0" />
+            <element signature="e#13376#14720#0" />
+            <element signature="e#14722#16055#0" />
+            <element signature="e#16129#19098#0" />
+            <element signature="e#16346#19027#0" />
+            <element signature="e#16347#17691#0" />
+            <element signature="e#17693#19026#0" />
+            <element signature="e#19100#22069#0" />
+            <element signature="e#19317#21998#0" />
+            <element signature="e#19318#20662#0" />
+            <element signature="e#20664#21997#0" />
+            <element signature="e#22071#25040#0" />
+            <element signature="e#22288#24969#0" />
+            <element signature="e#22289#23633#0" />
+            <element signature="e#23635#24968#0" />
+            <element signature="e#25042#28011#0" />
+            <element signature="e#25259#27940#0" />
+            <element signature="e#25260#26604#0" />
+            <element signature="e#26606#27939#0" />
+            <element signature="e#28013#30988#0" />
+            <element signature="e#28236#30917#0" />
+            <element signature="e#28237#29581#0" />
+            <element signature="e#29583#30916#0" />
+            <element signature="e#31191#31511#0" />
+            <element signature="e#31513#31833#0" />
+            <element signature="e#31835#32155#0" />
+            <element signature="e#32157#32477#0" />
+            <element signature="e#32479#32799#0" />
+            <element signature="e#32801#33121#0" />
+            <element signature="e#33123#33443#0" />
+            <element signature="e#33445#33765#0" />
+            <element signature="e#33767#34093#0" />
+            <element signature="e#35276#74765#0" />
+            <element signature="e#35277#39662#0" />
+            <element signature="e#35494#39591#0" />
+            <element signature="e#35495#36862#0" />
+            <element signature="e#36864#38241#0" />
+            <element signature="e#38243#39590#0" />
+            <element signature="e#39664#44049#0" />
+            <element signature="e#39881#43978#0" />
+            <element signature="e#39882#41249#0" />
+            <element signature="e#41251#42628#0" />
+            <element signature="e#42630#43977#0" />
+            <element signature="e#44051#48436#0" />
+            <element signature="e#44268#48365#0" />
+            <element signature="e#44269#45636#0" />
+            <element signature="e#45638#47015#0" />
+            <element signature="e#47017#48364#0" />
+            <element signature="e#48438#52823#0" />
+            <element signature="e#48655#52752#0" />
+            <element signature="e#48656#50023#0" />
+            <element signature="e#50025#51402#0" />
+            <element signature="e#51404#52751#0" />
+            <element signature="e#52825#57210#0" />
+            <element signature="e#53042#57139#0" />
+            <element signature="e#53043#54410#0" />
+            <element signature="e#54412#55789#0" />
+            <element signature="e#55791#57138#0" />
+            <element signature="e#57212#61597#0" />
+            <element signature="e#57429#61526#0" />
+            <element signature="e#57430#58797#0" />
+            <element signature="e#58799#60176#0" />
+            <element signature="e#60178#61525#0" />
+            <element signature="e#61599#65984#0" />
+            <element signature="e#61816#65913#0" />
+            <element signature="e#61817#63184#0" />
+            <element signature="e#63186#64563#0" />
+            <element signature="e#64565#65912#0" />
+            <element signature="e#65986#70371#0" />
+            <element signature="e#66203#70300#0" />
+            <element signature="e#66204#67571#0" />
+            <element signature="e#67573#68950#0" />
+            <element signature="e#68952#70299#0" />
+            <element signature="e#70373#74764#0" />
+            <element signature="e#70596#74693#0" />
+            <element signature="e#70597#71964#0" />
+            <element signature="e#71966#73343#0" />
+            <element signature="e#73345#74692#0" />
+            <element signature="e#74819#78873#0" />
+            <element signature="e#74930#77834#0" />
+            <element signature="e#74931#75251#0" />
+            <element signature="e#75253#75573#0" />
+            <element signature="e#75575#75895#0" />
+            <element signature="e#75897#76217#0" />
+            <element signature="e#76219#76539#0" />
+            <element signature="e#76541#76861#0" />
+            <element signature="e#76863#77183#0" />
+            <element signature="e#77185#77505#0" />
+            <element signature="e#77507#77833#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Apps/Sandcastle/gallery/Clustering.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="506">
+          <caret line="144" column="29" selection-start-line="144" selection-start-column="19" selection-end-line="144" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Core/Event.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="245">
+          <caret line="77" column="39" selection-start-line="77" selection-start-column="20" selection-end-line="77" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Scene/Camera.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="217">
+          <caret line="44" column="13" selection-start-line="44" selection-start-column="8" selection-end-line="44" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Core/createGuid.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="504">
+          <caret line="21" column="27" selection-start-line="21" selection-start-column="27" selection-end-line="21" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/DataSources/BillboardGraphics.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="553">
+          <caret line="45" column="23" lean-forward="true" selection-start-line="45" selection-start-column="23" selection-end-line="45" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Apps/Sandcastle/gallery/Labels.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2472">
+          <caret line="17" column="7" lean-forward="true" selection-start-line="17" selection-start-column="7" selection-end-line="17" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Core/Math.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="264">
+          <caret line="11" column="25" lean-forward="true" selection-start-line="11" selection-start-column="25" selection-end-line="11" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Scene/Label.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="369">
+          <caret line="130" column="40" selection-start-line="130" selection-start-column="40" selection-end-line="130" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Apps/UMap/options.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="149">
+          <caret line="46" column="12" lean-forward="true" selection-start-line="46" selection-start-column="12" selection-end-line="46" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Apps/UMap/MapInterface.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="317">
+          <caret line="120" column="4" selection-start-line="120" selection-start-column="4" selection-end-line="120" selection-end-column="4" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+            <element signature="e#389#1124#0" />
+            <element signature="e#1574#2408#0" />
+            <element signature="n#!!block;n#defaultSelectedCallback#0;n#!!block;n#MarkerLayer#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Core/Cartesian3.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-7119">
+          <caret line="29" column="13" selection-start-line="29" selection-start-column="13" selection-end-line="29" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/aws-sdk/clients/ecs.d.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="2197" column="27" selection-start-line="2197" selection-start-column="27" selection-end-line="2197" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Scene/LabelCollection.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="345">
+          <caret line="715" column="39" selection-start-line="715" selection-start-column="30" selection-end-line="715" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/UMap/OptionsUtil.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="29">
+          <caret line="17" column="6" lean-forward="true" selection-start-line="17" selection-start-column="6" selection-end-line="17" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/DataSources/EntityCluster.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="137" column="5" lean-forward="true" selection-start-line="137" selection-start-column="5" selection-end-line="137" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Scene/Billboard.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="24">
+          <caret line="77" column="13" selection-start-line="77" selection-start-column="13" selection-end-line="77" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore" />
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="120">
+            <caret line="5" column="11" lean-forward="true" selection-start-line="5" selection-start-column="11" selection-end-line="5" selection-end-column="11" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/UMap/Primitive/Marker.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="24">
+          <caret line="90" column="24" selection-start-line="90" selection-start-column="24" selection-end-line="90" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.npmrc" />
+    <entry file="file://$PROJECT_DIR$/.project" />
+    <entry file="file://$PROJECT_DIR$/.npmignore" />
+    <entry file="file://$PROJECT_DIR$/.externalToolBuilders/automaticBuild.launch" />
+    <entry file="file://$PROJECT_DIR$/launches/build.launch" />
+    <entry file="file://$PROJECT_DIR$/Source/UMap/Layer/LayerManager.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="3" column="38" selection-start-line="3" selection-start-column="7" selection-end-line="3" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Apps/UMap/LayerManagerTest.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="605">
+          <caret line="73" column="65" selection-start-line="73" selection-start-column="65" selection-end-line="73" selection-end-column="65" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Core/AssociativeArray.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="960">
+          <caret line="40" column="11" selection-start-line="40" selection-start-column="11" selection-end-line="40" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.eslintrc.json" />
+    <entry file="file://$PROJECT_DIR$/index.release.html" />
+    <entry file="file://$PROJECT_DIR$/nginx_server.js" />
+    <entry file="file://$PROJECT_DIR$/.settings/.jsdtscope" />
+    <entry file="file://$PROJECT_DIR$/Apps/Sandcastle/.eslintrc.json">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/UMap/Layer/MarkerLayer.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="50">
+          <caret line="218" column="27" lean-forward="true" selection-start-line="218" selection-start-column="27" selection-end-line="218" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Cesium.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2951">
+          <caret line="159" column="12" selection-start-line="159" selection-start-column="12" selection-end-line="159" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package-lock.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="7815" column="3" lean-forward="true" selection-start-line="7815" selection-start-column="3" selection-end-line="7815" selection-end-column="3" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-711">
+          <caret line="67" column="37" lean-forward="true" selection-start-line="67" selection-start-column="37" selection-end-line="67" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gulpfile.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="1069" column="9" selection-start-line="1069" selection-start-column="9" selection-end-line="1069" selection-end-column="9" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="13" lean-forward="true" selection-start-column="13" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
