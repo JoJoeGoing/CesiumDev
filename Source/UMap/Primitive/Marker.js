@@ -97,6 +97,7 @@ define(['../../Core/createGuid',
 
         if (defined(this._layer)) {
             this._billboard = this._layer.billboards.add(billboardOptions);
+            //用于点击回调。点击后，将selectEntity设置为该marker,inforBox会调用其description属性
             this._billboard._owner = this;
 
             if (this._showLabel) {

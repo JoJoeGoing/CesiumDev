@@ -180,7 +180,7 @@ define(['../../Core/defined',
         }
     });
 
-    MarkerLayer.prototype.init = function(collection, callback, obj) {
+    MarkerLayer.prototype.init = function(callback, obj) {
         var that = this;
         var url = this.url;
         fetchGeoJson(url).then(function(JsonObj) {

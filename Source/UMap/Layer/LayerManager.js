@@ -65,7 +65,7 @@ define(['../../Core/defaultValue',
             layerManager.removeAll();
             var layers = layerManager._layerList.values;
             for (var index = 0; index < layers.length; index++) {
-                layers[index].init(layerManager._billboardCollection, layerManager._renderDone, layerManager);
+                layers[index].init(layerManager._renderDone, layerManager);
             }
         };
     }
@@ -202,7 +202,7 @@ define(['../../Core/defaultValue',
         if (createHandler) {
             var layer = createHandler(options);
             this._layerList.set(layer.id, layer);
-            layer.init(this._billboardCollection, this._renderDone, this);
+            layer.init(this._renderDone, this);
         }
     };
 
