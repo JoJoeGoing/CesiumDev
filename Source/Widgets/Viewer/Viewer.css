@@ -16,7 +16,7 @@
 }
 
 .cesium-viewer-bottom {
-    display: block;
+    display: none;
     position: absolute;
     bottom: 0;
     left: 0;
@@ -25,7 +25,7 @@
 }
 
 .cesium-viewer .cesium-widget-credits {
-    display: inline;
+    display: none;
     position: static;
     bottom: auto;
     left: auto;
