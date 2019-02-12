@@ -1,9 +1,11 @@
 define(['../Core/Cartesian2',
         '../Core/Cartesian3',
         '../Scene/VerticalOrigin',
-        '../Scene/HorizontalOrigin'
+        '../Scene/HorizontalOrigin',
+        '../Core/Ellipsoid',
+        '../Core/VertexFormat'
 
-], function(Cartesian2, Cartesian3, VerticalOrigin, HorizontalOrigin) {
+], function(Cartesian2, Cartesian3, VerticalOrigin, HorizontalOrigin,Ellipsoid,VertexFormat) {
     'use strict';
 
     var OptionsUtil = {};
@@ -31,6 +33,18 @@ define(['../Core/Cartesian2',
         outlineWidth : undefined,
         pixelOffset : undefined,
         style : undefined
+    };
+
+    OptionsUtil.circle ={
+        center : Cartesian3.ZERO,
+        radius : 0.1,
+        ellipsoid : Ellipsoid.WGS84,
+        height : 0,
+        granularity : 0.02,
+        extrudedHeight : 0,
+        stRotation : 0,
+        vertexFormat : VertexFormat.DEFAULT
+
     };
 
     return OptionsUtil;
