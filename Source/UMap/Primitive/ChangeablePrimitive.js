@@ -19,7 +19,7 @@ define([
     '../../Scene/PerInstanceColorAppearance',
     '../../Scene/GroundPolylinePrimitive',
     '../../Scene/ClassificationType',
-    './DrawingTypes'
+    '../DrawingTypes'
 ], function (defined, Ellipsoid, destroyObject, DeveloperError, defaultValue, defineProperties, CesiumColor,
              GeometryInstance, ColorGeometryInstanceAttribute, Cartographic, Cartesian3, BoundingSphere,
              Ray, ContextLimits, HeightReference, GroundPrimitive, Primitive, PerInstanceColorAppearance,

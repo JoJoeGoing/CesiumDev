@@ -1,6 +1,6 @@
-define(['../../Core/defined',
-        '../../Core/Cartesian3',
-        '../../Core/Ellipsoid',
+define(['../Core/defined',
+        '../Core/Cartesian3',
+        '../Core/Ellipsoid',
 ], function(defined, Cartesian3,Ellipsoid) {
     'use strict';
 
