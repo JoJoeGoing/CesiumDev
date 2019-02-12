@@ -17,12 +17,14 @@ define(['../Core/defined',
         if(!defined(CesiumScene)){
             return;
         }
-        if (CesiumScene.pickPositionSupported) {
-            return CesiumScene.pickPosition(windowPosition);
-        }
-
         var globe = CesiumScene.globe;
         var camera = CesiumScene.camera;
+       
+        if (CesiumScene.pickPositionSupported) {
+           // return CesiumScene.pickPosition(windowPosition);
+           return camera.pickEllipsoid(windowPosition);
+        }
+
         var height = 0;
         if (defined(globe)) {
             ellipsoid = globe.ellipsoid;
