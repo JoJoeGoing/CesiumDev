@@ -40,9 +40,9 @@ define(['../../Core/defined',
      */
 
     function CirclePrimitive(options) {
-        if(!defined(options.scene)){
-            throw new DeveloperError('cesium scene is required');
-        }
+        // if(!defined(options.scene)){
+        //     throw new DeveloperError('cesium scene is required');
+        // }
         if (!defined(options.center) || !defined(options.radius)) {
             throw new DeveloperError('Center and radius are required');
         }
@@ -224,6 +224,7 @@ define(['../../Core/defined',
         return new CirclePrimitive(options);
     };
 
+    //todo: BillboardGroup为引入
     CirclePrimitive.prototype.setEditable = function(editMode) {
         editMode = defaultValue(editMode, true);
         this._editable = editMode;

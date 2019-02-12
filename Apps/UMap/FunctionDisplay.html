@@ -24,8 +24,6 @@
         @import url(../Sandcastle/templates/bucket.css);
     </style>
 
-
-
     <div id='draw' class="draw"></div>
     <div id='contain' class="cesiumView"></div>
     <div class="layerController">
@@ -61,7 +59,7 @@
         var circleSelect = document.getElementById('circleSelect');
         if (circleSelect) {
             circleSelect.addEventListener('click', function () {
-                console.log(this.width);
+                drawer.startDrawingCircle();
             });
         }
         var drawer = null;
