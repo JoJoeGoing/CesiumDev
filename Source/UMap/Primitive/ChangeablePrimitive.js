@@ -63,6 +63,7 @@ define([
         this.editable = options.editable;
         this.color = options.color;
         this.width = options.width;
+        this.height = options.height;
         //this.geodesic = defaultValue(options.geodesic, true);
         //this.textureRotationAngle = defaultValue(options.textureRotationAngle, 0);
         //this.perPositionHeight = defaultValue(options.perPositionHeight, true);
@@ -77,7 +78,6 @@ define([
         } else {
             this._heightReference = defaultValue(options.heightReference, HeightReference.CLAMP_TO_GROUND);
         }
-        this.height = defaultValue(options.height, 0);
 
         this._ellipsoid = undefined;
         this._granularity = undefined;

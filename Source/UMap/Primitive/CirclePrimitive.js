@@ -188,10 +188,10 @@ define(['../../Core/defined',
     CirclePrimitive.prototype.toJson = function() {
         if (defined(this.center) && defined(this.radius)) {
             var position = this.ellipsoid.cartesianToCartographic(this.center);
-            var color = '#F00';
-            if (defined(this.material) && 'Color' === this.material.type) {
-                color = this.material.uniforms.color.toCssColorString();
-            }
+            // var color = '#F00';
+            // if (defined(this.material) && 'Color' === this.material.type) {
+            //     color = this.material.uniforms.color.toCssColorString();
+            // }
             var geoJson = {
                 type : this.type,
                 geometry : {
@@ -199,7 +199,7 @@ define(['../../Core/defined',
                     radius : this.getRadius()
                 },
                 properties : {
-                    color : color
+                    color : this.color.toCssColorString()
                 }
             };
             geoJson.properties.height = defaultValue(this.height, 0);
@@ -212,9 +212,10 @@ define(['../../Core/defined',
         var json = JSON.parse(jsonString);
         options = defaultValue(options, {});
         if (defined(json.properties.color)) {
-            (options.material = Material.fromType('Color', {
-                color : Color.fromCssColorString(json.properties.color)
-            }));
+            // (options.material = Material.fromType('Color', {
+            //     color : Color.fromCssColorString(json.properties.color)
+            // }));
+            options.color = Color.fromCssColorString(json.properties.color);
         }
         if (defined(json.properties.height)) {
             options.height = json.properties.height;
