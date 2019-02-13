@@ -36,16 +36,22 @@
         </div>
         <!--Next button -->
         <div class="svg-wrapper">
-            <svg height="40" width="150" xmlns="http://www.w3.org/2000/svg">
+            <svg id="rectangleSelect" height="40" width="150" xmlns="http://www.w3.org/2000/svg">
                 <rect class="shape" height="40" width="150" />
                 <span class="spot"> 框 选</span>
             </svg>
         </div>
         <!--Next button -->
         <div class="svg-wrapper">
-            <svg height="40" width="150" xmlns="http://www.w3.org/2000/svg">
+            <svg id="polyline" height="40" width="150" xmlns="http://www.w3.org/2000/svg">
                 <rect class="shape" height="40" width="150" />
-                <span class="spot">Button 1</span>
+                <span class="spot"> 折 线</span>
+            </svg>
+        </div>
+        <div class="svg-wrapper">
+            <svg id="polygon" height="40" width="150" xmlns="http://www.w3.org/2000/svg">
+                <rect class="shape" height="40" width="150" />
+                <span class="spot"> 多边形</span>
             </svg>
         </div>
         <!--End button -->
@@ -59,9 +65,33 @@
         var circleSelect = document.getElementById('circleSelect');
         if (circleSelect) {
             circleSelect.addEventListener('click', function () {
-                drawer.startDrawingCircle();
+                drawer.draw('circle');
             });
         }
+
+        var rectangleSelect = document.getElementById('rectangleSelect');
+        if (rectangleSelect) {
+            rectangleSelect.addEventListener('click', function () {
+               drawer.draw('rectangle')
+            });
+        }
+
+        var polyline = document.getElementById('polyline');
+        if (polyline) {
+            polyline.addEventListener('click', function () {
+                drawer.draw('Polyline',true,{
+                    arrow:true
+                });
+            });
+        }
+
+        var polygon = document.getElementById('polygon');
+        if (polygon) {
+            polygon.addEventListener('click', function () {
+                drawer.draw('polygon',false);
+            });
+        }
+
         var drawer = null;
         function startup(Cesium) {
 
@@ -80,6 +110,10 @@
             }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
             drawer = new Cesium.DrawingManager(viewer);
+
+            drawer.addEventListener(Cesium.DrawingTypes.DRAWING_CIRCLE,function(type,object){
+                console.log(object);
+            })
             initTree(Cesium);
         }
 
