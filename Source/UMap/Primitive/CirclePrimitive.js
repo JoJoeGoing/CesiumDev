@@ -17,6 +17,7 @@ define(['../../Core/defined',
         '../../Scene/Material',
         '../DrawingTypes',
         './ChangeablePrimitive'
+       
 ], function (defined, destroyObject, defaultValue, DeveloperError, Cartesian3,
             CircleGeometry, CircleOutlineGeometry, CesiumMath, Color, buildModuleUrl,
             ScreenSpaceEventType, ScreenSpaceEventHandler, Rectangle, Ellipsoid,
@@ -48,8 +49,11 @@ define(['../../Core/defined',
         }
         this.initialiseOptions(options);
         this.center = options.center;
-        this.material = options.material;
+        this._material =Material.fromType('Color',{
+            color : this.color
+        });
         this.appearance = new EllipsoidSurfaceAppearance({
+            material : this._material,
             aboveGround : true,
             renderState : {
                 lineWidth : 1

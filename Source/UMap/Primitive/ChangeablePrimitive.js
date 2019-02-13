@@ -12,6 +12,7 @@ define([
     '../../Core/Cartesian3',
     '../../Core/BoundingSphere',
     '../../Core/Ray',
+    '../../Core/combine',
     '../../Renderer/ContextLimits',
     '../../Scene/HeightReference',
     '../../Scene/GroundPrimitive',
@@ -19,11 +20,12 @@ define([
     '../../Scene/PerInstanceColorAppearance',
     '../../Scene/GroundPolylinePrimitive',
     '../../Scene/ClassificationType',
-    '../DrawingTypes'
+    '../DrawingTypes',
+    '../OptionsUtil'
 ], function (defined, Ellipsoid, destroyObject, DeveloperError, defaultValue, defineProperties, CesiumColor,
-             GeometryInstance, ColorGeometryInstanceAttribute, Cartographic, Cartesian3, BoundingSphere,
-             Ray, ContextLimits, HeightReference, GroundPrimitive, Primitive, PerInstanceColorAppearance,
-             GroundPolylinePrimitive,ClassificationType, DrawingTypes) {
+    GeometryInstance, ColorGeometryInstanceAttribute, Cartographic, Cartesian3, BoundingSphere,
+    Ray, combine, ContextLimits, HeightReference, GroundPrimitive, Primitive, PerInstanceColorAppearance,
+    GroundPolylinePrimitive, ClassificationType, DrawingTypes, OptionsUtil) {
     'use strict';
 
     /**
@@ -51,26 +53,31 @@ define([
      * @param [options.heightReference]
      */
     ChangeablePrimitive.prototype.initialiseOptions = function (options) {
-        this._scene = options.scene;
-        this.ellipsoid = defaultValue(options.ellipsoid, Ellipsoid.WGS84);
-        this.asynchronous = defaultValue(options.asynchronous, false);
-        this.show = defaultValue(options.show, true);
-        this.debugShowBoundingVolume = defaultValue(options.debugShowBoundingVolume, false);
+        options = combine(options, OptionsUtil.drawOptions, false);
+
+        this.ellipsoid = options.ellipsoid;
+        this.asynchronous = options.asynchronous;
+        this.show = options.show;
+        this.debugShowBoundingVolume = options.debugShowBoundingVolume;
+        this.queryPrimitive = options.queryPrimitive;
+        this.editable = options.editable;
+        this.color = options.color;
+        this.width = options.width;
         //this.geodesic = defaultValue(options.geodesic, true);
         //this.textureRotationAngle = defaultValue(options.textureRotationAngle, 0);
         //this.perPositionHeight = defaultValue(options.perPositionHeight, true);
-        this.editable = defaultValue(options.editable, false);
+
         //this.aboveHeight = parseFloat(options.aboveHeight) || 0;
         //this.labelBackgroundColor = defaultValue(options.labelBackgroundColor,new CesiumColor(1,1,1,1));
-        this.queryPrimitive = defaultValue(options.queryPrimitive, false);
-        this.width = parseInt(defaultValue(options.width,5));
+
+        this._scene = options.scene;
 
         if (defined(options.altitude)) {
             this._heightReference = HeightReference.NONE;
         } else {
             this._heightReference = defaultValue(options.heightReference, HeightReference.CLAMP_TO_GROUND);
         }
-        this.height = defaultValue(options.height,0);
+        this.height = defaultValue(options.height, 0);
 
         this._ellipsoid = undefined;
         this._granularity = undefined;
@@ -140,7 +147,7 @@ define([
             return;
         }
         if (this.show) {
-            if (this._createPrimitive || this._ellipsoid !== this.ellipsoid || this._granularity !== this.granularity|| this._height !== this.height|| this._textureRotationAngle !== this.textureRotationAngle|| this._id !== this.id) {
+            if (this._createPrimitive || this._ellipsoid !== this.ellipsoid || this._granularity !== this.granularity || this._height !== this.height || this._textureRotationAngle !== this.textureRotationAngle || this._id !== this.id) {
                 var geometry = this.getGeometry(frameState);
                 if (!geometry) {
                     return;
@@ -154,11 +161,13 @@ define([
                 this._primitive = this._primitive && this._primitive.destroy();
 
                 var isNotGroundPrimitive = true;
-                var color = new ColorGeometryInstanceAttribute(0, 1, 1, 0.5);
-                if (defined(this.material) && defined(this.material.uniforms) && defined(this.material.uniforms.color)) {
-                    var materialColor = this.material.uniforms.color;
-                    color = new ColorGeometryInstanceAttribute(materialColor.red, materialColor.green, materialColor.blue, materialColor.alpha);
-                }
+                // var color = new ColorGeometryInstanceAttribute(0, 1, 1, 0.5);
+                // if (defined(this.material) && defined(this.material.uniforms) && defined(this.material.uniforms.color)) {
+                //     var materialColor = this.material.uniforms.color;
+                //     color = new ColorGeometryInstanceAttribute(materialColor.red, materialColor.green, materialColor.blue, materialColor.alpha);
+                // }
+                var color = this.color;
+                var geometryColor = new ColorGeometryInstanceAttribute(color.red, color.green, color.blue, color.alpha);
                 if (this._heightReference === HeightReference.CLAMP_TO_GROUND) {
                     switch (this.getType()) {
 
@@ -172,11 +181,10 @@ define([
                                     id: this.id,
                                     pickPrimitive: this,
                                     attributes: {
-                                        color: color
+                                        color: geometryColor
                                     }
                                 }),
-                                classificationType :ClassificationType.BOTH,
-                                 //appearance: this.appearance,
+                                classificationType: ClassificationType.BOTH,
                                 asynchronous: false
                             });
                             this._outlinePolygon = this._outlinePolygon && this._outlinePolygon.destroy();
@@ -208,7 +216,7 @@ define([
                             id: this.id,
                             pickPrimitive: this,
                             attributes: {
-                                color: color
+                                color: geometryColor
                             }
                         }),
                         appearance: this.appearance,
@@ -231,7 +239,7 @@ define([
                                 }
                             })
                         });
-                        this._primitive.appearance.material = this.material;
+                        //this._primitive.appearance.material = this.material;
                     }
                 }
             }
