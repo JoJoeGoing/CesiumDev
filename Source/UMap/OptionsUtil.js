@@ -39,13 +39,7 @@ define(['../Core/Cartesian2',
     OptionsUtil.circle = {
         center: Cartesian3.ZERO,
         radius: 0.1,
-        ellipsoid: Ellipsoid.WGS84,
-        height: 0,
-        granularity: 0.02,
-        extrudedHeight: 0,
-        stRotation: 0,
-        vertexFormat: VertexFormat.DEFAULT
-
+        height: 0
     };
 
     OptionsUtil.drawOptions = {
@@ -55,6 +49,7 @@ define(['../Core/Cartesian2',
         ellipsoid : Ellipsoid.WGS84,
         editable : false,
         width : 5,
+        height : 0,
         queryPrimitive : false,
         color : new Color(0, 1, 1, 0.5)
 
