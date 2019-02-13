@@ -1380,18 +1380,13 @@ define(['../Core/defined',
                             scene.refreshAlways = true;
                         }
                         tooltip.showCircleLabelText(movement.position, 0, true);
-                        //var c = ellipsoid.cartesianToCartographic(position);
-                        //height = defined(height) ? height : c.height;
-                        // if (defined(options.aboveHeight)) {
-                        //     height += options.aboveHeight;
-                        // }
+                 
                         options.center = position;
                         options.radius = 0;
                         options.height = height;
                         options.asynchronous = false;
                         circlePrimitive = new CirclePrimitive(options);
                         primitive.add(circlePrimitive);
-                        //  self._markers = new BillboardGroup(self, defaultBillboard);
                     }
                 }
             }, ScreenSpaceEventType.LEFT_DOWN);
@@ -1420,14 +1415,11 @@ define(['../Core/defined',
                         options.asynchronous = false;
                         var newCirclePrimitive = new CirclePrimitive(options);
                         ellipsoid.cartesianToCartographic(position);
-                        self._drawPrimitives.add(newCirclePrimitive);
+                        primitive.add(newCirclePrimitive);
                         if (options.editable) {
                             newCirclePrimitive.setEditable();
                         }
                         var centerLatLng = ellipsoid.cartesianToCartographic(newCirclePrimitive.getCenter());
-                        // var currentLatLng = ellipsoid.cartesianToCartographic(position);
-                        //在椭圆体上初始化连接两个提供的平面点的测地线。
-                        //var geodesic = new EllipsoidGeodesic(centerLatLng, currentLatLng);
                         var cartesianArray = newCirclePrimitive.getCircleCartesianCoordinates(CesiumMath.PI_OVER_TWO);
                         var cartographicArray = ellipsoid.cartesianArrayToCartographicArray(cartesianArray);
                         self._dispatchOverlayComplete(newCirclePrimitive, cartographicArray, {
