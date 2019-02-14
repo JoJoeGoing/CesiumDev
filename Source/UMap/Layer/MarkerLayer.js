@@ -201,16 +201,6 @@ define(['../../Core/defined',
                 };
                 var marker = new Marker(options,that);
                 that.markers.set(marker.id,marker);
-                // var options = {
-                //     viewer:that._viewer,
-                //     position : position,
-                //     properties:properties
-                // };
-                // options = combine(options,that._layerStyleOptions,false);
-                // collection.add({
-                //     position : options.position,
-                //     image : that._imgPath
-                // });
             }
             if (typeof callback === 'function') {
                 callback(obj);
