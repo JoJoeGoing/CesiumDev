@@ -16,9 +16,12 @@ define(['../Core/defined',
         '../Core/buildModuleUrl',
         '../Core/Cartographic',
         '../Core/Event',
+        '../Core/AssociativeArray',
         '../Scene/SceneTransforms',
         '../Scene/HeightReference',
         '../Scene/PrimitiveCollection',
+        '../Scene/BillboardCollection',
+        '../Scene/LabelCollection',
         '../Widgets/getElement',
         './DrawingTypes',
         './DrawingEvent',
@@ -26,14 +29,15 @@ define(['../Core/defined',
         './Primitive/RectanglePrimitive',
         './Primitive/PolylinePrimitive',
         './Primitive/PolygonPrimitive',
+        './Primitive/Marker',
         './pickGlobe'
     ],
     function (defined, defineProperties, destroyObject,
         DeveloperError, createGuid, Cartesian2,
         Cartesian3, CesiumMath, defaultValue, Ellipsoid, EllipsoidGeodesic,
         ScreenSpaceEventHandler, ScreenSpaceEventType, Color, Rectangle, buildModuleUrl,
-        Cartographic, Event, SceneTransforms, HeightReference, PrimitiveCollection, getElement,
-        DrawingTypes, DrawingEvent, CirclePrimitive,RectanglePrimitive,PolylinePrimitive,PolygonPrimitive, pickGlobe) {
+        Cartographic, Event, AssociativeArray, SceneTransforms, HeightReference, PrimitiveCollection, BillboardCollection, LabelCollection, getElement,
+        DrawingTypes, DrawingEvent, CirclePrimitive, RectanglePrimitive, PolylinePrimitive, PolygonPrimitive, Marker, pickGlobe) {
         'use strict';
         var screenPosition = new Cartesian2();
         var ellipsoid = Ellipsoid.WGS84;
@@ -47,33 +51,22 @@ define(['../Core/defined',
             circle: drawCircle,
             polyline: drawPolyline,
             rectangle: drawRectangle,
-            polygon : drawPolygon
+            polygon: drawPolygon,
+            marker: drawMarker,
+            model: drawModel
         };
 
         function drawCircle(manager, options, saveToBuffer) {
-            options = options || {};
-            exchangeImageUrl(manager, false);
+           
+            manager._beforeDrawing(saveToBuffer,options);
+            
             manager._drawingMode = DrawingTypes.DRAWING_CIRCLE;
-            manager._dispatchOverlayBegin(options);
+           
             var scene = manager._scene;
             var primitive = manager._drawPrimitives;
             var tooltip = manager._tooltip;
             var circlePrimitive = null;
             var height = options.height || 0;
-            saveToBuffer = saveToBuffer || false;
-
-            manager._beforeDrawing(function () {
-                if (null !== circlePrimitive) {
-                    primitive.remove(circlePrimitive);
-                }
-                manager._mouseHandler = manager._mouseHandler && manager._mouseHandler.destroy();
-                tooltip = tooltip && tooltip.setVisible(false);
-            });
-
-            scene.screenSpaceCameraController.enableLook = false;
-            scene.screenSpaceCameraController.enableTilt = false;
-            scene.screenSpaceCameraController.enableRotate = false;
-            manager._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
 
             manager._mouseHandler.setInputAction(function (movement) {
                 if (null !== movement.position) {
@@ -86,7 +79,7 @@ define(['../Core/defined',
 
                     var position = pickGlobe(scene, movement.position, height);
 
-                    if (position && null === circlePrimitive) {
+                    if (position) {
                         if (defined(scene)) {
                             scene.refreshAlways = true;
                         }
@@ -97,12 +90,13 @@ define(['../Core/defined',
                         options.height = height;
                         circlePrimitive = new CirclePrimitive(options);
                         primitive.add(circlePrimitive);
+                        manager._reDraw = true;
                     }
                 }
             }, ScreenSpaceEventType.LEFT_DOWN);
 
             manager._mouseHandler.setInputAction(function (movement) {
-                if (null !== movement.endPosition && null !== circlePrimitive) {
+                if (manager._reDraw && null !== movement.endPosition && null !== circlePrimitive) {
                     var position = pickGlobe(scene, movement.endPosition, height);
                     //var position = scene.camera.pickEllipsoid(movement.endPosition, ellipsoid);
                     if (null !== position) {
@@ -113,10 +107,10 @@ define(['../Core/defined',
             }, ScreenSpaceEventType.MOUSE_MOVE);
 
             manager._mouseHandler.setInputAction(function (movement) {
-                if (null !== movement.position) {
+                if (manager._reDraw && null !== movement.position) {
                     var position = pickGlobe(scene, movement.position, height);
-                    //var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
                     if (position && null !== circlePrimitive) {
+                       
                         tooltip.showCircleLabelText(movement.position, 0, false);
 
                         options.center = circlePrimitive.getCenter();
@@ -124,7 +118,7 @@ define(['../Core/defined',
                         options.height = height;
 
                         var newCirclePrimitive = new CirclePrimitive(options);
-                        //ellipsoid.cartesianToCartographic(position);
+
                         if (saveToBuffer) {
                             primitive.add(newCirclePrimitive);
                             if (options.editable) {
@@ -137,13 +131,15 @@ define(['../Core/defined',
                         //TODO: recode
                         manager._dispatchOverlayComplete(newCirclePrimitive, cartographicArray, {
                             center: centerLatLng,
-                            radius: circlePrimitive.getRadius(), // geodesic.surfaceDistance,
+                            radius: circlePrimitive.getRadius(), 
                             target: this
                         }, options);
+     
+                        if (null !== circlePrimitive) {
+                            primitive.remove(circlePrimitive);
+                            circlePrimitive = null;
+                        }
 
-                        scene.screenSpaceCameraController.enableLook = true;
-                        scene.screenSpaceCameraController.enableTilt = true;
-                        scene.screenSpaceCameraController.enableRotate = true;
                         manager._afterDrawing();
                     }
                 }
@@ -155,38 +151,22 @@ define(['../Core/defined',
             _drawPoly(manager, options, false, saveToBuffer);
         }
 
-        function drawPolygon(manager, options, saveToBuffer) {
-            manager._drawingMode = DrawingTypes.DRAWING_POLYGON;
-            _drawPoly(manager, options, true, saveToBuffer);
-        }
-
         function drawRectangle(manager, options, saveToBuffer) {
-            options = options || {};
-            exchangeImageUrl(manager, false);
-            manager._drawingMode = DrawingTypes.DRAWING_RECTANGLE_QUERY;
+            
+            manager._beforeDrawing(saveToBuffer,options);
 
-            manager._dispatchOverlayBegin(options);
+            if(saveToBuffer){
+                manager._drawingMode = DrawingTypes.DRAWING_RECTANGLE;
+            }else{
+                manager._drawingMode = DrawingTypes.DRAWING_RECTANGLE_QUERY;
+            }
+
             var scene = manager._scene;
             var primitive = manager._drawPrimitives;
             var tooltip = manager._tooltip;
             var baseCartographic = null;
             var extentPrimitive = null;
             var height = options.height;
-
-            manager._beforeDrawing(function () {
-                if (null !== extentPrimitive) {
-                    primitive.remove(extentPrimitive);
-                }
-                manager._markers = manager._markers && manager._markers.remove();
-                manager._mouseHandler = manager._mouseHandler && manager._mouseHandler.destroy();
-                tooltip = tooltip && tooltip.setVisible(false);
-            });
-
-            manager._markers = null;
-            scene.screenSpaceCameraController.enableLook = false;
-            scene.screenSpaceCameraController.enableTilt = false;
-            scene.screenSpaceCameraController.enableRotate = false;
-            manager._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
 
             manager._mouseHandler.setInputAction(function (movement) {
                 if (null !== movement.position) {
@@ -209,30 +189,29 @@ define(['../Core/defined',
                         options.height = height;
                         extentPrimitive = new RectanglePrimitive(options);
                         primitive.add(extentPrimitive);
+                        manager._reDraw = true;
                     }
                 }
             }, ScreenSpaceEventType.LEFT_DOWN);
 
             manager._mouseHandler.setInputAction(function (movement) {
-                if (null !== movement.endPosition) {
+                if (manager._reDraw && null !== movement.endPosition) {
                     var position = pickGlobe(scene, movement.endPosition, height);
                     if (position && null !== extentPrimitive) {
                         var cartographic2 = ellipsoid.cartesianToCartographic(position);
-                       
+
                         extentPrimitive.setExtent(getExtend(baseCartographic, cartographic2));
                     }
                 }
             }, ScreenSpaceEventType.MOUSE_MOVE);
 
             manager._mouseHandler.setInputAction(function (movement) {
-                if (null !== movement.position) {
+                if (manager._reDraw && null !== movement.position) {
                     var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
                     if (position && null !== extentPrimitive) {
                         var cartographic = ellipsoid.cartesianToCartographic(position);
                         var rectangle = getExtend(baseCartographic, cartographic);
-                        
                         extentPrimitive.setExtent(rectangle);
-
                         options.extent = rectangle;
                         options.height = height;
 
@@ -249,9 +228,10 @@ define(['../Core/defined',
                             target: manager
                         }, options);
 
-                        scene.screenSpaceCameraController.enableLook = true;
-                        scene.screenSpaceCameraController.enableTilt = true;
-                        scene.screenSpaceCameraController.enableRotate = true;
+                        if (null !== extentPrimitive) {
+                            primitive.remove(extentPrimitive);
+                            extentPrimitive = null;
+                        }
                         manager._afterDrawing();
 
                     }
@@ -259,25 +239,94 @@ define(['../Core/defined',
             }, ScreenSpaceEventType.LEFT_UP);
         }
 
-        function _drawPoly(manager, options, isPolygon, saveToBuffer) {
+        function drawPolygon(manager, options, saveToBuffer) {
+            manager._drawingMode = DrawingTypes.DRAWING_POLYGON;
+            _drawPoly(manager, options, true, saveToBuffer);
+        }
+
+        function drawMarker(manager, options) {
             options = options || {};
-            var poly;
+            exchangeImageUrl(manager, false);
             var scene = manager._scene;
-            var primitives = manager._drawPrimitives;
+            var tooltip = manager._tooltip;
+
+            // options.shiftX = options.shiftX || 0;
+            // options.shiftY = options.shiftY || 0;
+            var height = options.height || 0;
+
+            manager._beforeDrawing(function () {
+                self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
+                tooltip = tooltip && tooltip.setVisible(false);
+            });
+            manager._drawingMode = DrawingTypes.DRAWING_MARKER;
+            manager._dispatchOverlayBegin(options);
+
+            var markers = new MarkerCollection(self._viewer);
+
+            var primitive = void 0;
+
+            if (defined(options.data) && defined(options.data.id)) {
+                primitive = self._drawPrimitives.findPrimitiveByDataId(options.data.id);
+            }
+
+            self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
+            self._mouseHandler.setInputAction(function (movement) {
+                if (null !== movement.position) {
+                    var pickedFeature = scene.pick(movement.position);
+                    if (defined(pickedFeature)) {
+                        var cart = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
+                        height = Cartographic.fromCartesian(cart).height;
+                    }
+                    var cartesian3 = pickGlobe(scene, movement.position, height);
+                    if (cartesian3) {
+                        var center = ellipsoid.cartesianToCartographic(cartesian3);
+                        var precision = CesiumMath.EPSILON7;
+                        var points = [Cartographic.fromRadians(center.longitude - precision, center.latitude - precision, center.height), Cartographic.fromRadians(center.longitude + precision, center.latitude + precision, center.height)];
+
+                        if (primitive) {
+                            primitive._markers[0].position = cartesian3;
+                            self._afterDrawing();
+                        } else {
+                            options.lon = CesiumMath.toDegrees(center.longitude);
+                            options.lat = CesiumMath.toDegrees(center.latitude);
+                            options.height = center.height;
+                            options.data = points;
+                            primitive = markers.addModel(options);
+                            self._afterDrawing();
+                            self._drawPrimitives.add(markers);
+                            primitive.setEditable(true);
+                        }
+                        self._dispatchOverlayComplete(primitive, [center], {
+                            extent: points
+                        }, options);
+                        scene.refreshOnce = true;
+                    }
+                }
+            }, ScreenSpaceEventType.LEFT_CLICK);
+
+            self._mouseHandler.setInputAction(function (movement) {
+                var position = movement.endPosition;
+                if (null !== position && self._showTooltip) {
+                    tooltip.showAt(position, '点击添加');
+                }
+            }, ScreenSpaceEventType.MOUSE_MOVE);
+        }
+
+        function drawModel(manager, options, saveToBuffer) {
+
+        }
+
+        function _drawPoly(manager, options, isPolygon, saveToBuffer) {
+            manager._beforeDrawing(saveToBuffer,options);
+
+            var poly = null;
+            var scene = manager._scene;
+            var primitive = manager._drawPrimitives;
             var tooltip = manager._tooltip;
             var minPoints = isPolygon ? 3 : 2;
             var arrow = options.arrow;
-            if (isPolygon) {
-                poly = new PolygonPrimitive(options);
-            } 
-            // else if (manager._drawingMode === DrawingTypes.DRAWING_POLYLINE) {
-            //     poly = new PolylinePrimitive(options, false);
-            // } 
-            else {
-                poly = new PolylinePrimitive(options, arrow);
-            }
-            primitives.add(poly);
-            var height = options.altitude || 0;
+            var height = options.height || 0;
+
             var baseHtml = '';
             if (manager._drawingMode === DrawingTypes.DRAWING_DISTANCE) {
                 baseHtml = '距离：';
@@ -285,20 +334,8 @@ define(['../Core/defined',
             } else if (manager._drawingMode === DrawingTypes.DRAWING_AREA) {
                 baseHtml = '面积：';
             }
+
             var cartesianPositions = [];
-
-            manager._beforeDrawing(function () {
-                primitives = primitives && primitives.remove(poly);
-                manager._markers = manager._markers && manager._markers.remove();
-                manager._mouseHandler = manager._mouseHandler && manager._mouseHandler.destroy();
-                tooltip = tooltip && tooltip.setVisible(false);
-            });
-
-            manager._dispatchOverlayBegin(options);
-
-            //manager._markers = new BillboardGroup(manager, defaultBillboard);
-
-            manager._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
 
             manager._mouseHandler.setInputAction(function (movement) {
                 if (null !== movement.position) {
@@ -307,7 +344,6 @@ define(['../Core/defined',
                         var cartesian3 = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
                         height = Cartographic.fromCartesian(cartesian3).height;
                     }
-                    //var cartesian = scene.camera.pickEllipsoid(movement.position, ellipsoid);
                     var cartesian = pickGlobe(scene, movement.position, height);
                     if (cartesian) {
                         if (defined(scene)) {
@@ -315,21 +351,29 @@ define(['../Core/defined',
                         }
                         if (0 === cartesianPositions.length) {
                             cartesianPositions.push(cartesian.clone());
-                           // manager._markers.addBillboard(cartesianPositions[0]);
+                        }
+                        if(poly === null){
+                            if (isPolygon) {
+                                poly = new PolygonPrimitive(options);
+                            } else {
+                                poly = new PolylinePrimitive(options, arrow);
+                            }
+                            primitive.add(poly);
+                            manager._reDraw = true;
+
                         }
                         if (cartesianPositions.length >= minPoints) {
                             poly.positions = cartesianPositions;
                             poly._createPrimitive = true;
                         }
                         cartesianPositions.push(cartesian);
-                       // manager._markers.addBillboard(cartesian);
                     }
                 }
             }, ScreenSpaceEventType.LEFT_CLICK);
 
             manager._mouseHandler.setInputAction(function (movement) {
                 var position = movement.endPosition;
-                if (null !== position) {
+                if (manager._reDraw && null !== position) {
                     if (0 === cartesianPositions.length) {
                         if (manager._drawingMode === DrawingTypes.DRAWING_DISTANCE) {
                             tooltip.showAt(position, baseHtml + '0米');
@@ -340,7 +384,6 @@ define(['../Core/defined',
                         }
                     } else {
                         var cartesian3 = pickGlobe(scene, position, height);
-                        //var cartesian3 = scene.camera.pickEllipsoid(position, ellipsoid);
                         if (cartesian3) {
                             cartesianPositions.pop();
                             //确保移动的两个点是不同的值
@@ -350,7 +393,7 @@ define(['../Core/defined',
                                 poly.positions = cartesianPositions;
                                 poly._createPrimitive = true;
                             }
-                           // manager._markers.getBillboard(cartesianPositions.length - 1).position = cartesian3;
+                            // manager._markers.getBillboard(cartesianPositions.length - 1).position = cartesian3;
                             if (manager._drawingMode === DrawingTypes.DRAWING_DISTANCE) {
                                 var perimeter = computePerimeter(cartesianPositions);
                                 var distanceHtml = addUnit(perimeter);
@@ -370,34 +413,28 @@ define(['../Core/defined',
 
             manager._mouseHandler.setInputAction(function (movement) {
                 var position = movement.position;
-                if (null !== position) {
+                if (manager._reDraw && null !== position) {
                     if (cartesianPositions.length < minPoints + 2) {
                         return;
                     }
-                    // var p = scene.camera.pickEllipsoid(position, ellipsoid);
                     var p = pickGlobe(scene, position, height);
                     if (p) {
-                        manager._afterDrawing();
+
                         cartesianPositions.pop();
                         cartesianPositions.pop();
                         for (var a = cartesianPositions.length - 1; a > 0; a--) {
                             cartesianPositions[a].equalsEpsilon(cartesianPositions[a - 1], CesiumMath.EPSILON3);
                         }
-                        var poly;
+                        var newPoly;
                         if (isPolygon) {
-                            poly = new PolygonPrimitive(options);
-                        } 
-                        // else if (manager._drawingMode === DrawingTypes.DRAWING_POLYLINE) {
-                        //     poly = new PolylinePrimitive(options, false);
-                        //     //poly.heightReference = HeightReference.NONE;
-                        // } 
-                        else {
-                            poly = new PolylinePrimitive(options, arrow);
+                            newPoly = new PolygonPrimitive(options);
+                        } else {
+                            newPoly = new PolylinePrimitive(options, arrow);
                         }
-                        poly.positions = cartesianPositions;
+                        newPoly.positions = cartesianPositions;
                         if (manager._drawingMode === DrawingTypes.DRAWING_DISTANCE) {
                             var perimeter = computePerimeter(cartesianPositions);
-                            manager._dispatchOverlayComplete(poly, ellipsoid.cartesianArrayToCartographicArray(cartesianPositions), {
+                            manager._dispatchOverlayComplete(newPoly, ellipsoid.cartesianArrayToCartographicArray(cartesianPositions), {
                                 target: manager
                             }, {
                                 distance: perimeter
@@ -405,23 +442,29 @@ define(['../Core/defined',
                         } else if (manager._drawingMode === DrawingTypes.DRAWING_AREA) {
                             var cartographicArray = ellipsoid.cartesianArrayToCartographicArray(cartesianPositions);
                             var area = new PolygonArea(cartographicArray);
-                            manager._dispatchOverlayComplete(poly, ellipsoid.cartesianArrayToCartographicArray(cartesianPositions), {
+                            manager._dispatchOverlayComplete(newPoly, ellipsoid.cartesianArrayToCartographicArray(cartesianPositions), {
                                 target: manager
                             }, {
                                 area: area
                             });
                         } else {
-                            if(saveToBuffer){
-                                manager._drawPrimitives.add(poly);
+                            if (saveToBuffer) {
+                                manager._drawPrimitives.add(newPoly);
                                 if (options.editable) {
-                                    poly.setEditable();
+                                    newPoly.setEditable();
                                 }
                             }
-                           
-                            manager._dispatchOverlayComplete(poly, ellipsoid.cartesianArrayToCartographicArray(cartesianPositions), {
+                            manager._dispatchOverlayComplete(newPoly, ellipsoid.cartesianArrayToCartographicArray(cartesianPositions), {
                                 target: manager
                             }, options);
                         }
+                        
+                        cartesianPositions = [];
+                        if (null !== poly) {
+                            primitive.remove(poly);  
+                            poly = null;
+                        }
+                        manager._afterDrawing();
                     }
                 }
             }, ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
@@ -434,11 +477,21 @@ define(['../Core/defined',
             this._viewer = cesiumView;
             this._scene = cesiumView.scene;
             this._showTooltip = true;
-
             this._id = createGuid();
+            this._reDraw = false;
+
+            this._billboardCollection = this._scene.primitives.add(new BillboardCollection({
+                scene: this._scene
+            }));
+
+            this._labelCollection = this._scene.primitives.add(new LabelCollection({
+                scene: this._scene
+            }));
+
+            this._markerCollection = new AssociativeArray();
+
 
             if (!defined(this._drawPrimitives)) {
-                // var collection = new DrawingCollection(this);
                 var collection = new PrimitiveCollection();
                 this._scene.primitives.add(collection);
                 this._drawPrimitives = collection;
@@ -458,7 +511,7 @@ define(['../Core/defined',
             this._mouseHandler = undefined;
             // this._dragEndEvent = new Event();
 
-            this._initialiseHandlers();
+            //this._initialiseHandlers();
             //this.listenerMoveEnd();
 
         }
@@ -497,52 +550,19 @@ define(['../Core/defined',
         });
 
         DrawingManager.prototype.draw = function (type, saveToBuffer, options) {
-            if(typeof type === 'string'){
+            if (typeof type === 'string') {
                 type = type.toLowerCase();
                 var method = drawHandler[type];
                 if (method) {
+                    options = options || {};
+                    if(typeof saveToBuffer !== 'boolean'){
+                        saveToBuffer = false;
+                    }
                     method(this, options, saveToBuffer);
                 }
             }
-          
+
         };
-        // DrawingManager.prototype.remove = function (primitive) {
-        //     return !!defined(this._drawPrimitives) && this._drawPrimitives.remove(primitive);
-        // };
-
-        // DrawingManager.prototype.close = function () {
-        //     if (!this._isOpen) {
-        //         return true;
-        //     }
-        //     this.disableAllEditMode();
-        //     if (this._editCleanUp) {
-        //         this._editCleanUp();
-        //         this._editCleanUp = null;
-        //     }
-        //     this._muteHandlers(false);
-        //     this._isOpen = false;
-        // };
-
-        // DrawingManager.prototype.clearEdit = function () {
-        //     for (var t = 0; t < this._drawPrimitives.length; t++) {
-        //         var r = this._drawPrimitives.get(t);
-        //         if (defined(r) && r.isDestroyed && !r.isDestroyed()) {
-        //             if (defined(r.length)) {
-        //                 for (var i = 0; i < r.length; i++) {
-        //                     var n = r.get(i);
-        //                     if (defined(n) && n._editable && defined(n.markerCollection)) {
-        //                         n.markerCollection.remove(n);
-        //                     }
-        //                 }
-        //                 if (0 === r.length) {
-        //                     this._drawPrimitives.removeAndDestroy(r);
-        //                 }
-        //             } else if (r._editable) {
-        //                 this._drawPrimitives.removeAndDestroy(r);
-        //             }
-        //         }
-        //     }
-        // };
 
         // DrawingManager.prototype.setListener = setListener;
 
@@ -554,58 +574,33 @@ define(['../Core/defined',
             this._showTooltip = visible;
         };
 
-        // /**
-        //  * 为可以编辑的图形注册鼠标和回调事件
-        //  * 该图形必须实现{setEditMode} 和{setHighlighted}
-        //  * @method
-        //  * @param shape
-        //  */
-        // DrawingManager.prototype.registerEditableShape = function (shape) {
-        //     var self = this;
+        DrawingManager.prototype._beforeDrawing = function (options,callback) {
+            var that = this;
 
-        //     //移动鼠标时高亮该shape
-        //     setListener(shape, 'mouseMove', function (position) {
-        //         shape.setHighlighted(true);
-        //         if (!shape._editMode && self._showTooltip) {
-        //             self._tooltip.showAt(position, '点击编辑此要素');
-        //         }
-        //     });
+            this._dispatchOverlayBegin(options);
 
-        //     //鼠标移开时取消高亮
-        //     setListener(shape, 'mouseOut', function (position) {
-        //         shape.setHighlighted(false);
-        //         self._tooltip.setVisible(false);
-        //     });
+            this._scene.screenSpaceCameraController.enableLook = false;
+            this._scene.screenSpaceCameraController.enableTilt = false;
+            this._scene.screenSpaceCameraController.enableRotate = false;
+         
+            this._mouseHandler = this._mouseHandler && this._mouseHandler.destroy();
+            this._mouseHandler = new ScreenSpaceEventHandler(this._scene.canvas);
+            this._mouseHandler.setInputAction(function(){
+                that.closeDraw();
+            },ScreenSpaceEventType.RIGHT_CLICK);
 
-        //     setListener(shape, 'leftClick', function (position) {
-        //         shape.setEditMode(true);
-        //     });
-        // };
+            exchangeImageUrl(this, false);
 
-        // DrawingManager.prototype.unregisterEditableShape = function (shape) {
-        //     removeListener(shape, 'mouseMove');
-        //     removeListener(shape, 'mouseOut');
-        //     removeListener(shape, 'leftClick');
-        // };
-
-        DrawingManager.prototype._beforeDrawing = function (callback) {
-            //this.disableAllEditMode();
-            if (this._editCleanUp) {
-                this._editCleanUp();
-            }
-            this._editCleanUp = callback;
-            this._muteHandlers(true);
         };
 
-        DrawingManager.prototype._afterDrawing = function () {
-            this._markers = this._markers && this._markers.remove();
+        DrawingManager.prototype._afterDrawing = function () {       
+            this._reDraw = false;
+            this._tooltip.setVisible(false);
+        };
+
+        DrawingManager.prototype.closeDraw = function () {
+
             this._mouseHandler = this._mouseHandler && this._mouseHandler.destroy();
-            this.tooltip = this.tooltip && this.tooltip.setVisible(false);
-            if (this._editCleanUp) {
-                this._editCleanUp();
-                this._editCleanUp = null;
-            }
-            this._muteHandlers(false);
 
             if (defined(this._scene)) {
                 this._scene.screenSpaceCameraController.enableLook = true;
@@ -620,17 +615,6 @@ define(['../Core/defined',
                 this._scene.refreshOnce = true;
             }
         };
-
-        // /**
-        //  *
-        //  * @param primitive
-        //  * @param {boolean} editable
-        //  */
-        // DrawingManager.prototype.setEditable = function (primitive, editable) {
-        //     if (primitive && !primitive.isDestroyed()) {
-        //         primitive.setEditable(editable);
-        //     }
-        // };
 
         //TODO: need  change
         DrawingManager.prototype.setInputActions = function () {
@@ -650,1099 +634,6 @@ define(['../Core/defined',
             this._viewer.screenSpaceEventHandler.removeInputAction(ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
         };
-        // /**
-        //  * 确保同一时间只有一个图形是处于高亮状态
-        //  * @method
-        //  */
-        // DrawingManager.prototype.disableAllHighlights = function () {
-        //     this.setHighlighted(undefined);
-        // };
-
-        // /**
-        //  * 设置该图形为高亮状态
-        //  * @method
-        //  * @param surface
-        //  */
-        // DrawingManager.prototype.setHighlighted = function (surface) {
-        //     if (this._highlightedSurface && !this._highlightedSurface.isDestroyed() && this._highlightedSurface !== surface) {
-        //         this._highlightedSurface.setHighlighted(false);
-        //     }
-        //     this._highlightedSurface = surface;
-        // };
-
-        // /**
-        //  * 确保同一时间只有一个图形处于可编辑状态
-        //  * @method
-        //  */
-        // DrawingManager.prototype.disableAllEditMode = function () {
-        //     this.setEdited(undefined);
-        // };
-
-        // /**
-        //  * 设置该图形为当前可编辑对象
-        //  * @method
-        //  * @param surface
-        //  */
-        // DrawingManager.prototype.setEdited = function (surface) {
-        //     if (this._editedSurface && !this._editedSurface.isDestroyed()) {
-        //         this._editedSurface.setEditMode(false);
-        //     }
-        //     this._editedSurface = surface;
-        // };
-
-        // /**
-        //  * 显示或隐藏所有特定类型的图形
-        //  * @method
-        //  * @param {DrawingTypes} drawingType
-        //  * @param visible
-        //  */
-        // DrawingManager.prototype.setVisible = function (drawingType, visible) {
-        //     if (drawingType === DrawingTypes.DRAWING_MARKER || drawingType === DrawingTypes.DRAWING_MODEL) {
-        //         for (var index = 0; index < this._drawPrimitives.length; index++) {
-        //             var markerPrimitive = this._drawPrimitives.get(index);
-        //             if (defined(markerPrimitive) && markerPrimitive.isDestroyed && !markerPrimitive.isDestroyed() && defined(markerPrimitive.length)) {
-        //                 markerPrimitive.show = visible;
-        //             }
-        //         }
-        //     } else {
-        //         for (var i = 0; i < this._drawPrimitives.length; i++) {
-        //             var primitive = this._drawPrimitives.get(i);
-        //             if (defined(primitive) && primitive.isDestroyed && !primitive.isDestroyed() && primitive.getType && primitive.getType() === drawingType) {
-        //                 primitive.show = visible;
-        //             }
-        //         }
-        //     }
-
-        //     this._scene.refreshOnce = true;
-        // };
-
-        // /**
-        //  * 显示所有图层
-        //  * @method
-        //  * @param {boolean} show
-        //  */
-        // DrawingManager.prototype.setAllVisible = function (show) {
-        //     for (var index = 0; index < this._drawPrimitives.length; index++) {
-        //         var primitive = this._drawPrimitives.get(index);
-        //         if (defined(primitive) && primitive.isDestroyed && !primitive.isDestroyed()) {
-        //             primitive.show = show;
-        //         }
-        //     }
-        //     this._scene.refreshOnce = true;
-        // };
-
-
-
-        // /**
-        //  *
-        //  * @param points
-        //  * @param options
-        //  * @param callbacks
-        //  * @return {BillboardGroup}
-        //  */
-        // DrawingManager.prototype.createBillboardGroup = function (points, options, callbacks) {
-        //     var markers = new BillboardGroup(this, options);
-        //     markers.addBillboards(points, callbacks);
-        //     return markers;
-        // };
-
-        // /**
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingMarkerQuery = function (options) {
-        //     var self = this;
-        //     var scene = this._scene;
-        //     var tooltip = this._tooltip;
-        //     if (this._drawingMode === DrawingTypes.DRAWING_MARKER_QUERY) {
-        //         return exchangeImageUrl(self, false);
-        //     }
-        //     this._afterDrawing();
-        //     this._drawingMode = DrawingTypes.DRAWING_NONE;
-        //     this._viewer.enableInfoOrSelection = true;
-
-        //     options.shiftX = options.shiftX || 0;
-        //     options.shiftY = options.shiftY || 0;
-
-        //     this._beforeDrawing(function () {
-        //         self._markers = self._markers && self._markers.remove();
-        //         self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
-        //         tooltip = tooltip && tooltip.setVisible(false);
-        //     });
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_MARKER_QUERY;
-        //     this._dispatchOverlayBegin(options);
-
-        //     self._markers = new BillboardGroup(this, options);
-        //     self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-        //             //var cartesian3 = pickGlobe(scene, movement.position);
-        //             var cartesian3 = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-        //             if (cartesian3) {
-        //                 self.clearSelect();
-        //                 var center = ellipsoid.cartesianToCartographic(cartesian3);
-        //                 var precision = CesiumMath.EPSILON7;
-        //                 var range = [Cartographic.fromRadians(center.longitude - precision, center.latitude - precision, 0), Cartographic.fromRadians(center.longitude + precision, center.latitude + precision, 0)];
-        //                 var markers = new MarkerCollection(self._viewer);
-        //                 options.lon = CesiumMath.toDegrees(center.longitude);
-        //                 options.lat = CesiumMath.toDegrees(center.latitude);
-        //                 options.data = range;
-        //                 var markerPrimitive = markers.addModel(options);
-
-        //                 markerPrimitive.drawingMode = DrawingTypes.DRAWING_MARKER_QUERY;
-
-        //                 var windowPosition = SceneTransforms.wgs84ToWindowCoordinates(self._scene, cartesian3);
-
-        //                 displayRevealMarker(self, windowPosition, function () {
-        //                     markerPrimitive.mousePosition = movement.position;
-        //                     self._dispatchOverlayComplete(markerPrimitive, [center], {
-        //                         extent: range
-        //                     });
-        //                 });
-        //                 scene.refreshOnce = true;
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_CLICK);
-        // };
-
-        // /**
-        //  * 绘制marker点
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingMarker = function (options) {
-        //     var self = this;
-        //     var scene = this._scene;
-        //     var tooltip = this._tooltip;
-
-        //     options.shiftX = options.shiftX || 0;
-        //     options.shiftY = options.shiftY || 0;
-        //     var height = options.altitude;
-        //     this._beforeDrawing(function () {
-        //         self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
-        //         tooltip = tooltip && tooltip.setVisible(false);
-        //     });
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_MARKER;
-        //     this._dispatchOverlayBegin(options);
-        //     var markers = new MarkerCollection(self._viewer);
-
-        //     var primitive = void 0;
-        //     if (defined(options.data) && defined(options.data.id)) {
-        //         primitive = self._drawPrimitives.findPrimitiveByDataId(options.data.id);
-        //     }
-        //     self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-        //             var pickedFeature = scene.pick(movement.position);
-        //             if (defined(pickedFeature)) {
-        //                 var cart = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
-        //                 height = Cartographic.fromCartesian(cart).height;
-        //             }
-        //             var cartesian3 = pickGlobe(scene, movement.position, height);
-        //             if (cartesian3) {
-        //                 var center = ellipsoid.cartesianToCartographic(cartesian3);
-        //                 var precision = CesiumMath.EPSILON7;
-        //                 var points = [Cartographic.fromRadians(center.longitude - precision, center.latitude - precision, center.height), Cartographic.fromRadians(center.longitude + precision, center.latitude + precision, center.height)];
-
-        //                 if (primitive) {
-        //                     primitive._markers[0].position = cartesian3;
-        //                     self._afterDrawing();
-        //                 } else {
-        //                     options.lon = CesiumMath.toDegrees(center.longitude);
-        //                     options.lat = CesiumMath.toDegrees(center.latitude);
-        //                     options.height = center.height;
-        //                     options.data = points;
-        //                     primitive = markers.addModel(options);
-        //                     self._afterDrawing();
-        //                     self._drawPrimitives.add(markers);
-        //                     primitive.setEditable(true);
-        //                 }
-        //                 self._dispatchOverlayComplete(primitive, [center], {
-        //                     extent: points
-        //                 }, options);
-        //                 scene.refreshOnce = true;
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_CLICK);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         var position = movement.endPosition;
-        //         if (null !== position && self._showTooltip) {
-        //             tooltip.showAt(position, '点击添加');
-        //         }
-        //     }, ScreenSpaceEventType.MOUSE_MOVE);
-        // };
-
-        // /**
-        //  * 绘制人物模型
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingModel = function (options) {
-        //     var self = this;
-        //     var scene = this._scene;
-        //     var tooltip = this._tooltip;
-        //     options.properties = options.properties || {};
-        //     var height = options.altitude;
-        //     this._beforeDrawing(function () {
-        //         self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
-        //         tooltip = tooltip && tooltip.setVisible(false);
-        //     });
-        //     this._drawingMode = DrawingTypes.DRAWING_MODEL;
-        //     this._dispatchOverlayBegin(options);
-        //     var markers = new ModelCollection(self._viewer);
-
-        //     self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-        //             var pickedFeature = scene.pick(movement.position);
-        //             if (defined(pickedFeature)) {
-        //                 var cart = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
-        //                 height = Cartographic.fromCartesian(cart).height;
-        //             }
-        //             //var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-        //             var position = pickGlobe(scene, movement.position, height);
-        //             if (position) {
-        //                 var center = ellipsoid.cartesianToCartographic(position);
-        //                 var precision = CesiumMath.EPSILON7;
-        //                 var points = [Cartographic.fromRadians(center.longitude - precision, center.latitude - precision, center.height), Cartographic.fromRadians(center.longitude + precision, center.latitude + precision, center.height)];
-        //                 options.lon = CesiumMath.toDegrees(center.longitude);
-        //                 options.lat = CesiumMath.toDegrees(center.latitude);
-        //                 options.height = center.height;
-        //                 options.properties.location = points;
-        //                 options.heightReference = HeightReference.NONE;
-        //                 options.viewer = self._viewer;
-
-        //                 var primitive = markers.addModel(options);
-        //                 self._afterDrawing();
-        //                 self._drawPrimitives.add(markers);
-        //                 primitive.setEditable(true);
-        //                 self._dispatchOverlayComplete(primitive, [center], {
-        //                     extent: points
-        //                 }, options);
-        //                 scene.refreshOnce = true;
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_CLICK);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         var position = movement.endPosition;
-        //         if (null !== position && self._showTooltip) {
-        //             tooltip.showAt(position, '点击添加');
-        //         }
-        //     }, ScreenSpaceEventType.MOUSE_MOVE);
-        // };
-
-        // /**
-        //  * 绘制多边形
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingPolygon = function (options) {
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_POLYGON;
-        //     this._startDrawingPolyShape(true, options);
-        // };
-
-        // /**
-        //  * 绘制折线
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingPolyline = function (options) {
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_POLYLINE;
-        //     this._startDrawingPolyShape(false, options);
-        // };
-
-        // /**
-        //  * 绘制距离，暂时好像没有用处
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingDistance = function (options) {
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_DISTANCE;
-        //     this._startDrawingPolyShape(false, options);
-        // };
-
-        // /**
-        //  * 绘制面积，暂时好像没有用处
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingArea = function (options) {
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_AREA;
-        //     this._startDrawingPolyShape(true, options);
-        // };
-
-        // /**
-        //  * 绘制带箭头的折线
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingPolylineArrow = function (options) {
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_POLYLINE_ARROW;
-        //     this._startDrawingPolyShape(false, options);
-        // };
-
-        // /**
-        //  * 绘制带高度的折线
-        //  * @method
-        //  * @param options
-        //  * @see PolylinePrimitive
-        //  */
-        // DrawingManager.prototype.startDrawingHeight = function (options) {
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_HEIGHT;
-        //     var self = this;
-        //     var poly;
-        //     var scene = this._scene;
-        //     var primitive = this._drawPrimitives;
-        //     var tooltip = this._tooltip;
-        //     var polyLine = new PolylinePrimitive(options);
-        //     polyLine.heightReference = HeightReference.NONE;
-        //     polyLine.asynchronous = false;
-        //     primitive.add(polyLine);
-        //     var position;
-        //     var points = [];
-        //     this._beforeDrawing(function () {
-        //         primitive = primitive && primitive.remove(poly) && primitive.remove(polyLine);
-        //         self._markers = self._markers && self._markers.remove();
-        //         self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
-        //         tooltip = tooltip && tooltip.setVisible(false);
-        //     });
-        //     this._dispatchOverlayBegin(options);
-        //     var altitude = options.altitude;
-
-        //     self._markers = new BillboardGroup(this, defaultBillboard);
-        //     self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-        //             if (0 === points.length) {
-        //                 // position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-        //                 position = pickGlobe(scene, movement.position, altitude);
-        //                 if (position !== null) {
-        //                     if (defined(scene)) {
-        //                         scene.refreshAlways = true;
-        //                     }
-        //                     points.push(position.clone());
-        //                     self._markers.addBillboard(points[0]);
-        //                     var options = {
-        //                         center: position,
-        //                         radius: 0,
-        //                         height: 0,
-        //                         asynchronous: false
-        //                     };
-        //                     poly = new CirclePrimitive(options);
-        //                     poly.heightReference = HeightReference.NONE;
-        //                     primitive.add(poly);
-        //                 }
-        //             } else {
-        //                 self._afterDrawing();
-        //                 position = pickGlobe(scene, movement.position, altitude);
-        //                 // position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-
-        //                 if (!defined(position)) {
-        //                     return;
-        //                 }
-        //                 var cartographic = ellipsoid.cartesianToCartographic(position);
-        //                 EllipsoidGeodesic = ellipsoid.cartesianToCartographic(position);
-        //                 ScreenSpaceEventHandler = cartographic.height - EllipsoidGeodesic.height;
-        //                 self._dispatchOverlayComplete(null, null, {
-        //                     target: this
-        //                 }, {
-        //                     height: ScreenSpaceEventHandler
-        //                 });
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_CLICK);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         var o = movement.endPosition;
-        //         if (null !== o) {
-        //             if (0 === points.length) {
-        //                 tooltip.showAt('高度为: 0米');
-        //             } else {
-        //                 var d = pickGlobe(scene, o, options.altitude);
-        //                 //var d = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-
-        //                 if (!defined(d)) {
-        //                     return;
-        //                 }
-        //                 var h = ellipsoid.cartesianToCartographic(d);
-        //                 var p = ellipsoid.cartesianToCartographic(position);
-        //                 var f = h.height - p.height;
-        //                 p.height = h.height;
-        //                 var m = ellipsoid.cartographicToCartesian(p);
-        //                 if (points.length < 2) {
-        //                     points.push(m);
-        //                     self._markers.addBillboard(m);
-        //                 } else {
-        //                     points[1] = m;
-        //                     self._markers.getBillboard(points.length - 1).position = m;
-        //                     polyLine.positions = points;
-        //                     polyLine._createPrimitive = true;
-        //                     if (defined(poly)) {
-        //                         poly.center = m;
-        //                         poly.height = h.height;
-        //                         poly.setRadius(Cartesian3.distance(m, d));
-        //                     }
-        //                     tooltip.showAt(o, '高度为: ' + addUnit(f));
-        //                 }
-
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.MOUSE_MOVE);
-        // };
-
-        // /**
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingRectangleQuery = function (options) {
-
-        //     var self = this;
-        //     options.perPositionHeight = false;
-        //     options.height = 0;
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_RECTANGLE_QUERY;
-
-        //     this._dispatchOverlayBegin(options);
-        //     var scene = this._scene;
-        //     var primitive = this._drawPrimitives;
-        //     var tooltip = this._tooltip;
-        //     var baseCartographic = null;
-        //     var extentPrimitive = null;
-        //     var height = options.altitude;
-
-        //     this._beforeDrawing(function () {
-        //         if (null !== extentPrimitive) {
-        //             primitive.remove(extentPrimitive);
-        //         }
-        //         self._markers = self._markers && self._markers.remove();
-        //         self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
-        //         tooltip = tooltip && tooltip.setVisible(false);
-        //     });
-
-        //     self._markers = null;
-        //     scene.screenSpaceCameraController.enableLook = false;
-        //     scene.screenSpaceCameraController.enableTilt = false;
-        //     scene.screenSpaceCameraController.enableRotate = false;
-        //     self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-        //             var pickedFeature = scene.pick(movement.position);
-        //             if (defined(pickedFeature)) {
-        //                 var cartesian3 = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
-        //                 height = Cartographic.fromCartesian(cartesian3).height;
-        //             }
-        //             var position = pickGlobe(scene, movement.position, options.aboveHeight);
-        //             //var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-        //             if (position && null === extentPrimitive) {
-        //                 if (defined(scene)) {
-        //                     scene.refreshAlways = true;
-        //                 }
-        //                 baseCartographic = ellipsoid.cartesianToCartographic(position);
-        //                 height = defined(height) ? height : baseCartographic.height;
-        //                 if (defined(options.aboveHeight)) {
-        //                     height += options.aboveHeight;
-        //                 }
-        //                 setExtent(getExtend(baseCartographic, baseCartographic), options);
-        //                 extentPrimitive.height = height;
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_DOWN);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.endPosition) {
-        //             var position = pickGlobe(scene, movement.endPosition, height);
-        //             // var position = scene.camera.pickEllipsoid(movement.endPosition, ellipsoid);
-        //             if (position && null !== extentPrimitive) {
-        //                 var cartographic2 = ellipsoid.cartesianToCartographic(position);
-        //                 setExtent(getExtend(baseCartographic, cartographic2), options);
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.MOUSE_MOVE);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-        //             // var position = pickGlobe(scene, movement.position, height);
-        //             var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-        //             if (position && null !== extentPrimitive) {
-        //                 var cartographic = ellipsoid.cartesianToCartographic(position);
-        //                 var rectangle = getExtend(baseCartographic, cartographic);
-        //                 setExtent(rectangle, options);
-        //                 self._afterDrawing();
-
-        //                 options.extent = rectangle;
-        //                 options.asynchronous = false;
-        //                 var newExtentPrimitive = new ExtentPrimitive(options);
-        //                 newExtentPrimitive.queryPrimitive = true;
-        //                 newExtentPrimitive.height = height;
-        //                 self._dispatchOverlayComplete(newExtentPrimitive, null, {
-        //                     target: this
-        //                 }, options);
-        //                 scene.screenSpaceCameraController.enableLook = true;
-        //                 scene.screenSpaceCameraController.enableTilt = true;
-        //                 scene.screenSpaceCameraController.enableRotate = true;
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_UP);
-
-        //     function setExtent(rectangle, options) {
-        //         if (null === extentPrimitive) {
-        //             extentPrimitive = new ExtentPrimitive(options);
-        //             extentPrimitive.asynchronous = false;
-        //             extentPrimitive.queryPrimitive = true;
-        //             primitive.add(extentPrimitive);
-        //         }
-        //         extentPrimitive.setExtent(rectangle);
-        //     }
-        // };
-
-        // /**
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingRectangle = function (options) {
-
-        //     var self = this;
-        //     options.perPositionHeight = false;
-        //     options.height = 0;
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_RECTANGLE;
-        //     var scene = this._scene;
-        //     var primitives = this._drawPrimitives;
-        //     var tooltip = this._tooltip;
-        //     var baseCartographic = null;
-        //     var extentPrimitive = null;
-        //     var height = options.altitude;
-
-        //     this._beforeDrawing(function () {
-        //         if (null !== extentPrimitive) {
-        //             primitives.remove(extentPrimitive);
-        //         }
-        //         self._markers = self._markers && self._markers.remove();
-        //         self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
-        //         tooltip = tooltip && tooltip.setVisible(false);
-        //     });
-
-        //     this._dispatchOverlayBegin(options);
-
-        //     self._markers = null;
-        //     scene.screenSpaceCameraController.enableLook = false;
-        //     scene.screenSpaceCameraController.enableTilt = false;
-        //     scene.screenSpaceCameraController.enableRotate = false;
-        //     self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-        //             var pickedFeature = scene.pick(movement.position);
-        //             if (defined(pickedFeature)) {
-        //                 var cartesian3 = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
-        //                 height = Cartographic.fromCartesian(cartesian3).height;
-        //             }
-        //             var position = pickGlobe(scene, movement.position, height);
-        //             // var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-
-        //             if (position && null === extentPrimitive) {
-        //                 if (defined(scene)) {
-        //                     (scene.refreshAlways = true);
-        //                 }
-        //                 baseCartographic = ellipsoid.cartesianToCartographic(position);
-        //                 height = defined(height) ? height : baseCartographic.height;
-        //                 if (defined(options.aboveHeight)) {
-        //                     (height += options.aboveHeight);
-        //                 }
-        //                 setExtent(getExtend(baseCartographic, baseCartographic), options);
-        //                 extentPrimitive.height = height;
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_DOWN);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-
-        //         if (null !== movement.endPosition) {
-        //             var position = pickGlobe(scene, movement.endPosition, height);
-        //             //var position = scene.camera.pickEllipsoid(movement.endPosition, ellipsoid);
-
-        //             if (position && null !== extentPrimitive) {
-        //                 var cartographic1 = ellipsoid.cartesianToCartographic(position);
-        //                 setExtent(getExtend(baseCartographic, cartographic1), options);
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.MOUSE_MOVE);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-        //             var position = pickGlobe(scene, movement.position, height);
-        //             //var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-
-        //             if (position && null !== extentPrimitive) {
-        //                 var cartographic1 = ellipsoid.cartesianToCartographic(position);
-        //                 var rectangle = getExtend(baseCartographic, cartographic1);
-        //                 setExtent(rectangle, options);
-        //                 self._afterDrawing();
-        //                 options.extent = rectangle;
-        //                 options.asynchronous = false;
-        //                 var newExtentPrimitive = new ExtentPrimitive(options);
-        //                 newExtentPrimitive.height = height;
-        //                 self._drawPrimitives.add(newExtentPrimitive);
-        //                 if (options.editable) {
-        //                     newExtentPrimitive.setEditable();
-        //                 }
-        //                 self._dispatchOverlayComplete(newExtentPrimitive, null, {
-        //                     target: this
-        //                 }, options);
-        //                 scene.screenSpaceCameraController.enableLook = true;
-        //                 scene.screenSpaceCameraController.enableTilt = true;
-        //                 scene.screenSpaceCameraController.enableRotate = true;
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_UP);
-
-        //     function setExtent(rectangle, options) {
-        //         if (null === extentPrimitive) {
-        //             extentPrimitive = new ExtentPrimitive(options);
-        //             extentPrimitive.asynchronous = false;
-        //             primitives.add(extentPrimitive);
-        //         }
-        //         extentPrimitive.setExtent(rectangle);
-        //         var points = getExtentCorners(rectangle);
-        //         if (null === self._markers) {
-        //             self._markers = new BillboardGroup(self, defaultBillboard);
-        //             self._markers.addBillboards(points);
-        //         } else {
-        //             self._markers.updateBillboardsPositions(points);
-        //         }
-        //     }
-        // };
-
-        // /**
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingCircleQuery = function (options) {
-        //     var self = this;
-        //     this._drawingMode = DrawingTypes.DRAWING_CIRCLE_QUERY;
-        //     exchangeImageUrl(this, false);
-        //     this._dispatchOverlayBegin(options);
-        //     var scene = this._scene;
-        //     var primitive = this._drawPrimitives;
-        //     var tooltip = this._tooltip;
-        //     var height = options.altitude;
-        //     var circlePrimitive = null;
-
-        //     this._beforeDrawing(function () {
-        //         if (null !== circlePrimitive) {
-        //             primitive.remove(circlePrimitive);
-        //         }
-        //         self._markers = self._markers && self._markers.remove();
-        //         self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
-        //         tooltip = tooltip && tooltip.setVisible(false);
-        //     });
-
-        //     self._markers = null;
-        //     scene.screenSpaceCameraController.enableLook = false;
-        //     scene.screenSpaceCameraController.enableTilt = false;
-        //     scene.screenSpaceCameraController.enableRotate = false;
-        //     self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-        //             var pickedFeature = scene.pick(movement.position);
-        //             if (defined(pickedFeature)) {
-        //                 var cartesian3 = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
-        //                 height = Cartographic.fromCartesian(cartesian3).height;
-        //             }
-        //             var position = pickGlobe(scene, movement.position, height);
-        //             //var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-        //             if (position && null === circlePrimitive) {
-        //                 if (defined(scene)) {
-        //                     scene.refreshAlways = false;
-        //                 }
-        //                 tooltip.showCircleLabelText(movement.position, 0, true);
-        //                 var cartographic = ellipsoid.cartesianToCartographic(position);
-        //                 height = defined(height) ? height : cartographic.height;
-        //                 if (defined(options.aboveHeight)) {
-        //                     height += options.aboveHeight;
-        //                 }
-        //                 options.center = position;
-        //                 options.radius = 0;
-        //                 options.height = height;
-        //                 options.asynchronous = false;
-        //                 options.queryPrimitive = true;
-        //                 circlePrimitive = new CirclePrimitive(options);
-
-        //                 primitive.add(circlePrimitive);
-        //                 // self._markers = new BillboardGroup(self, defaultBillboard);
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_DOWN);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.endPosition) {
-        //             var position = pickGlobe(scene, movement.endPosition, height);
-        //             //var position = scene.camera.pickEllipsoid(movement.endPosition, ellipsoid);
-        //             if (null !== position && null !== circlePrimitive) {
-        //                 tooltip.showCircleLabelText(undefined, getSurfaceDistance(circlePrimitive.getCenter(), position), undefined);
-        //                 circlePrimitive.setRadius(Cartesian3.distance(circlePrimitive.getCenter(), position));
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.MOUSE_MOVE);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position && null !== circlePrimitive) {
-        //             //var position =  pickGlobe(scene, movement.position, height)
-        //             //var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-        //             tooltip.showCircleLabelText(movement.position, circlePrimitive.getRadius(), false);
-        //             options.center = circlePrimitive.getCenter();
-        //             options.radius = circlePrimitive.getRadius();
-        //             options.height = height;
-        //             options.asynchronous = false;
-        //             options.queryPrimitive = true;
-        //             var newCirclePrimitive = new CirclePrimitive(options);
-        //             self._dispatchOverlayComplete(newCirclePrimitive, null, {
-        //                 target: this
-        //             }, options);
-        //             self._afterDrawing();
-        //             scene.screenSpaceCameraController.enableLook = true;
-        //             scene.screenSpaceCameraController.enableTilt = true;
-        //             scene.screenSpaceCameraController.enableRotate = true;
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_UP);
-        // };
-
-        // /**
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingCircle = function (options) {
-        //     var self = this;
-        //     options = options || {};
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_CIRCLE;
-        //     this._dispatchOverlayBegin(options);
-        //     var scene = this._scene;
-        //     var primitive = this._drawPrimitives;
-        //     var tooltip = this._tooltip;
-        //     var circlePrimitive = null;
-        //     var height = options.altitude || 0;
-
-        //     this._beforeDrawing(function () {
-        //         if (null !== circlePrimitive) {
-        //             primitive.remove(circlePrimitive);
-        //         }
-        //         // self._markers = self._markers && self._markers.remove();
-        //         self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
-        //         tooltip = tooltip && tooltip.setVisible(false);
-        //     });
-
-        //     //self._markers = null;
-        //     scene.screenSpaceCameraController.enableLook = false;
-        //     scene.screenSpaceCameraController.enableTilt = false;
-        //     scene.screenSpaceCameraController.enableRotate = false;
-        //     self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-
-        //             var pickedFeature = scene.pick(movement.position);
-        //             if (defined(pickedFeature)) {
-        //                 var cartesian3 = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
-        //                 height = Cartographic.fromCartesian(cartesian3).height;
-        //             }
-
-        //             var position = pickGlobe(scene, movement.position, height);
-        //             //var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-
-        //             if (position && null === circlePrimitive) {
-        //                 if (defined(scene)) {
-        //                     scene.refreshAlways = true;
-        //                 }
-        //                 tooltip.showCircleLabelText(movement.position, 0, true);
-
-        //                 options.center = position;
-        //                 options.radius = 0;
-        //                 options.height = height;
-        //                 options.asynchronous = false;
-        //                 circlePrimitive = new CirclePrimitive(options);
-        //                 primitive.add(circlePrimitive);
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_DOWN);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.endPosition && null !== circlePrimitive) {
-        //             var position = pickGlobe(scene, movement.endPosition, height);
-        //             //var position = scene.camera.pickEllipsoid(movement.endPosition, ellipsoid);
-        //             if (null !== position) {
-        //                 tooltip.showCircleLabelText(undefined, getSurfaceDistance(circlePrimitive.getCenter(), position), undefined);
-        //                 circlePrimitive.setRadius(Cartesian3.distance(circlePrimitive.getCenter(), position));
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.MOUSE_MOVE);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-        //             var position = pickGlobe(scene, movement.position, height);
-        //             //var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-        //             if (position && null !== circlePrimitive) {
-        //                 tooltip.showCircleLabelText(movement.position, 0, false);
-
-        //                 options.center = circlePrimitive.getCenter();
-        //                 options.radius = circlePrimitive.getRadius();
-        //                 options.height = height;
-        //                 options.asynchronous = false;
-        //                 var newCirclePrimitive = new CirclePrimitive(options);
-        //                 ellipsoid.cartesianToCartographic(position);
-        //                 primitive.add(newCirclePrimitive);
-        //                 if (options.editable) {
-        //                     newCirclePrimitive.setEditable();
-        //                 }
-        //                 var centerLatLng = ellipsoid.cartesianToCartographic(newCirclePrimitive.getCenter());
-        //                 var cartesianArray = newCirclePrimitive.getCircleCartesianCoordinates(CesiumMath.PI_OVER_TWO);
-        //                 var cartographicArray = ellipsoid.cartesianArrayToCartographicArray(cartesianArray);
-        //                 self._dispatchOverlayComplete(newCirclePrimitive, cartographicArray, {
-        //                     center: centerLatLng,
-        //                     radius: circlePrimitive.getRadius(), // geodesic.surfaceDistance,
-        //                     target: this
-        //                 }, options);
-        //                 scene.screenSpaceCameraController.enableLook = true;
-        //                 scene.screenSpaceCameraController.enableTilt = true;
-        //                 scene.screenSpaceCameraController.enableRotate = true;
-        //                 self._afterDrawing();
-        //             }
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_UP);
-        // };
-
-        // /**
-        //  * @method
-        //  * @param options
-        //  */
-        // DrawingManager.prototype.startDrawingClickQuery = function (options) {
-        //     var self = this;
-        //     exchangeImageUrl(this, false);
-        //     this._drawingMode = DrawingTypes.DRAWING_CLICK_QUERY;
-        //     options = options || {};
-        //     this._dispatchOverlayBegin(options);
-        //     var scene = this._scene;
-        //     var tooltip = this._tooltip;
-
-        //     this._beforeDrawing(function () {
-        //         //  self._markers = self._markers && self._markers.remove();
-        //         self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
-        //         tooltip = tooltip && tooltip.setVisible(false);
-        //     });
-
-        //     // self._markers = new BillboardGroup(this, options);
-        //     self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
-
-        //     self._mouseHandler.setInputAction(function (movement) {
-        //         if (null !== movement.position) {
-        //             var position = pickGlobe(scene, movement.position);
-        //             //var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-        //             var cartographic = ellipsoid.cartesianToCartographic(position);
-        //             var newMarkerCollection = new MarkerCollection(self._viewer);
-        //             options.lon = CesiumMath.toDegrees(cartographic.longitude);
-        //             options.lat = CesiumMath.toDegrees(cartographic.latitude);
-        //             var newPrimitive = newMarkerCollection.addModel(options);
-        //             newPrimitive.mousePosition = movement.position;
-        //             self._dispatchOverlayComplete(newPrimitive, null, {
-        //                 target: this
-        //             }, options);
-        //             scene.refreshOnce = true;
-        //         }
-        //     }, ScreenSpaceEventType.LEFT_CLICK);
-        // };
-
-        // DrawingManager.prototype.drawDynamicMarker = function (t, r, i) {
-        //     var cartographicPosition = ellipsoid.cartesianToCartographic(t.position);
-        //     var height = this._scene.globe.getHeight(cartographicPosition);
-        //     if (defined(height)) {
-        //         cartographicPosition.height = height;
-        //         screenPosition = SceneTransforms.wgs84ToWindowCoordinates(this._scene, ellipsoid.cartographicToCartesian(cartographicPosition), screenPosition);
-        //     } else {
-        //         screenPosition = SceneTransforms.wgs84ToWindowCoordinates(this._scene, t.position, screenPosition);
-        //     }
-        //     displayDynamicMarkerDIV(this, t, screenPosition, r, i);
-        // };
-
-        /**
-         * 内部方法，绘制多边形
-         * @param isPolygon
-         * @param options
-         * @private
-         * @see PolygonPrimitive
-         * @see PolylinePrimitive
-         */
-        DrawingManager.prototype._startDrawingPolyShape = function (isPolygon, options) {
-            var self = this;
-
-            var poly;
-            var scene = this._scene;
-            var primitives = this._drawPrimitives;
-            var tooltip = this._tooltip;
-            var minPoints = isPolygon ? 3 : 2;
-            if (isPolygon) {
-                poly = new PolygonPrimitive(options);
-            } else if (self._drawingMode === DrawingTypes.DRAWING_POLYLINE) {
-                poly = new PolylinePrimitive(options, false);
-            } else {
-                poly = new PolylinePrimitive(options, true);
-            }
-            primitives.add(poly);
-            var height = options.altitude || 0;
-            var baseHtml = '';
-            if (this._drawingMode === DrawingTypes.DRAWING_DISTANCE) {
-                baseHtml = '距离：';
-
-            } else if (this._drawingMode === DrawingTypes.DRAWING_AREA) {
-                baseHtml = '面积：';
-            }
-            var cartesianPositions = [];
-
-            this._beforeDrawing(function () {
-                primitives = primitives && primitives.remove(poly);
-                self._markers = self._markers && self._markers.remove();
-                self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
-                tooltip = tooltip && tooltip.setVisible(false);
-            });
-
-            this._dispatchOverlayBegin(options);
-
-            self._markers = new BillboardGroup(this, defaultBillboard);
-
-            self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
-
-            self._mouseHandler.setInputAction(function (movement) {
-                if (null !== movement.position) {
-                    var pickedFeature = scene.pick(movement.position);
-                    if (defined(pickedFeature) && defined(pickedFeature.content)) {
-                        var cartesian3 = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
-                        height = Cartographic.fromCartesian(cartesian3).height;
-                    }
-                    //var cartesian = scene.camera.pickEllipsoid(movement.position, ellipsoid);
-                    var cartesian = pickGlobe(scene, movement.position, height);
-                    if (cartesian) {
-                        if (defined(scene)) {
-                            scene.refreshAlways = true;
-                        }
-                        if (0 === cartesianPositions.length) {
-                            cartesianPositions.push(cartesian.clone());
-                            self._markers.addBillboard(cartesianPositions[0]);
-                        }
-                        if (cartesianPositions.length >= minPoints) {
-                            poly.positions = cartesianPositions;
-                            poly._createPrimitive = true;
-                        }
-                        cartesianPositions.push(cartesian);
-                        self._markers.addBillboard(cartesian);
-                    }
-                }
-            }, ScreenSpaceEventType.LEFT_CLICK);
-
-            self._mouseHandler.setInputAction(function (movement) {
-                var position = movement.endPosition;
-                if (null !== position) {
-                    if (0 === cartesianPositions.length) {
-                        if (self._drawingMode === DrawingTypes.DRAWING_DISTANCE) {
-                            tooltip.showAt(position, baseHtml + '0米');
-                        } else if (self._drawingMode === DrawingTypes.DRAWING_AREA) {
-                            tooltip.showAt(position, baseHtml + '0平方米');
-                        } else if (self._showTooltip) {
-                            tooltip.showAt(position, '点击添加第一个点');
-                        }
-                    } else {
-                        var cartesian3 = pickGlobe(scene, position, height);
-                        //var cartesian3 = scene.camera.pickEllipsoid(position, ellipsoid);
-                        if (cartesian3) {
-                            cartesianPositions.pop();
-                            //确保移动的两个点是不同的值
-                            cartesian3.y += 1 + Math.random();
-                            cartesianPositions.push(cartesian3);
-                            if (cartesianPositions.length >= minPoints) {
-                                poly.positions = cartesianPositions;
-                                poly._createPrimitive = true;
-                            }
-                            self._markers.getBillboard(cartesianPositions.length - 1).position = cartesian3;
-                            if (self._drawingMode === DrawingTypes.DRAWING_DISTANCE) {
-                                var perimeter = computePerimeter(cartesianPositions);
-                                var distanceHtml = addUnit(perimeter);
-                                tooltip.showAt(position, baseHtml + distanceHtml + (cartesianPositions.length > minPoints ? ',双击结束' : ''));
-                            } else if (self._drawingMode === DrawingTypes.DRAWING_AREA) {
-                                var cartographicPositions = ellipsoid.cartesianArrayToCartographicArray(cartesianPositions);
-                                var area = new PolygonArea(cartographicPositions);
-                                var areaHtml = getAreaText(area);
-                                tooltip.showAt(position, baseHtml + areaHtml + (cartesianPositions.length > minPoints ? ',双击结束' : ''));
-                            } else if (self._showTooltip) {
-                                tooltip.showAt(position, (cartesianPositions.length <= minPoints ? '点击添加新点 (' + cartesianPositions.length + ')' : '') + (cartesianPositions.length > minPoints ? '双击结束绘制' : ''));
-                            }
-                        }
-                    }
-                }
-            }, ScreenSpaceEventType.MOUSE_MOVE);
-
-            self._mouseHandler.setInputAction(function (movement) {
-                var position = movement.position;
-                if (null !== position) {
-                    if (cartesianPositions.length < minPoints + 2) {
-                        return;
-                    }
-                    // var p = scene.camera.pickEllipsoid(position, ellipsoid);
-                    var p = pickGlobe(scene, position, height);
-                    if (p) {
-                        self._afterDrawing();
-                        cartesianPositions.pop();
-                        cartesianPositions.pop();
-                        for (var a = cartesianPositions.length - 1; a > 0; a--) {
-                            cartesianPositions[a].equalsEpsilon(cartesianPositions[a - 1], CesiumMath.EPSILON3);
-                        }
-                        var poly;
-                        if (isPolygon) {
-                            poly = new PolygonPrimitive(options);
-                        } else if (self._drawingMode === DrawingTypes.DRAWING_POLYLINE) {
-                            poly = new PolylinePrimitive(options, false);
-                            //poly.heightReference = HeightReference.NONE;
-                        } else {
-                            poly = new PolylinePrimitive(options, true);
-                        }
-                        poly.positions = cartesianPositions;
-                        if (self._drawingMode === DrawingTypes.DRAWING_DISTANCE) {
-                            var perimeter = computePerimeter(cartesianPositions);
-                            self._dispatchOverlayComplete(poly, ellipsoid.cartesianArrayToCartographicArray(cartesianPositions), {
-                                target: this
-                            }, {
-                                distance: perimeter
-                            });
-                        } else if (self._drawingMode === DrawingTypes.DRAWING_AREA) {
-                            var cartographicArray = ellipsoid.cartesianArrayToCartographicArray(cartesianPositions);
-                            var area = new PolygonArea(cartographicArray);
-                            self._dispatchOverlayComplete(poly, ellipsoid.cartesianArrayToCartographicArray(cartesianPositions), {
-                                target: this
-                            }, {
-                                area: area
-                            });
-                        } else {
-                            self._drawPrimitives.add(poly);
-                            if (options.editable) {
-                                poly.setEditable();
-                            }
-                            self._dispatchOverlayComplete(poly, ellipsoid.cartesianArrayToCartographicArray(cartesianPositions), {
-                                target: this
-                            }, options);
-                        }
-                    }
-                }
-            }, ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
-        };
-
 
         /**
          * 初始化处理鼠标事件
