@@ -95,19 +95,20 @@ define(['../../Core/createGuid',
         var billboardStyle = defaultValue(options.billboardStyle, defaultValue.EMPTY_OBJECT);
         var billboardOptions = combine(billboard, billboardStyle, false);
 
+        var label = {
+            position : this._position,
+            text : this._description.name || '未命名'
+        };
+        var labelStyle = defaultValue(options.labelStyle, defaultValue.EMPTY_OBJECT);
+        var labelOptions = combine(label, labelStyle, false);
+
         if (defined(this._layer)) {
             this._billboard = this._layer.billboards.add(billboardOptions);
             //用于点击回调。点击后，将selectEntity设置为该marker,inforBox会调用其description属性
             this._billboard._owner = this;
 
             if (this._showLabel) {
-                var label = {
-                    position : this._position,
-                    text : this._description.name || '未命名'
-                };
-                var labelStyle = defaultValue(options.labelStyle, defaultValue.EMPTY_OBJECT);
-                var labelOptions = combine(label, labelStyle, false);
-
+               
                 this._label = this._layer.labels.add(labelOptions);
                 this._label._owner = this;
             }
@@ -205,8 +206,6 @@ define(['../../Core/createGuid',
         if (defined(this._billboard)) {
             this._billboard = null;
         }
-        // this._markerCollection = void 0;
-        // this._content = undefined;
         this._layer = undefined;
         destroyObject(this);
     };
