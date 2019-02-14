@@ -5,30 +5,14 @@ define(['../../Core/createGuid',
         '../../Core/DeveloperError',
         '../../Core/defineProperties',
         '../../Core/defaultValue',
-        '../../Core/Color',
-        '../../Core/Cartesian2',
         '../../Core/Cartesian3',
-        '../../Core/Cartographic',
         '../../Core/buildModuleUrl',
-        '../../Core/Math',
-        '../../Core/Rectangle',
-        '../../Core/Ellipsoid',
-        '../../Core/ScreenSpaceEventType',
-        '../../Core/ScreenSpaceEventHandler',
-        '../../Scene/HeightReference',
-        '../../Scene/VerticalOrigin',
-        '../../Scene/HorizontalOrigin',
-        '../../Scene/LabelStyle',
-        '../../DataSources/Entity',
         '../../DataSources/CallbackProperty',
-        '../../DataSources/createPropertyDescriptor',
-        '../../DataSources/ConstantPositionProperty'
+        '../OptionsUtil',
+        '../defaultDescriptCallback'
 ], function(createGuid, defined, combine, destroyObject, DeveloperError,
-            defineProperties, defaultValue, Color,
-            Cartesian2, Cartesian3, Cartographic, buildModuleUrl,
-            CesiumMath, Rectangle, Ellipsoid, ScreenSpaceEventType,
-            ScreenSpaceEventHandler, HeightReference, VerticalOrigin, HorizontalOrigin,
-            LabelStyle, Entity, CallbackProperty, createPropertyDescriptor, ConstantPositionProperty) {
+            defineProperties, defaultValue,
+            Cartesian3, buildModuleUrl,CallbackProperty,OptionsUtil,defaultDescriptCallback) {
     'use strict';
 
     /**
@@ -41,20 +25,6 @@ define(['../../Core/createGuid',
         return function() {
             return callback(properties);
         };
-    }
-
-    function defaultCallback(options) {
-        var html = '';
-        for (var option in options) {
-            if (options.hasOwnProperty(option)) {
-                var n = options[option];
-                html += 'object' === typeof n ? '<tr><th>' + option + '</th><td>' + defaultCallback(n) + '</td></tr>' : '<tr><th>' + option + '</th><td>' + n + '</td></tr>';
-            }
-        }
-        if (html.length > 0) {
-            html = '<table class="cesium-infoBox-defaultTable"><tbody>' + html + '</tbody></table>';
-        }
-        return html;
     }
 
     /**
@@ -92,14 +62,14 @@ define(['../../Core/createGuid',
             position : this._position,
             image : this._image
         };
-        var billboardStyle = defaultValue(options.billboardStyle, defaultValue.EMPTY_OBJECT);
+        var billboardStyle = defaultValue(options.billboardStyle, OptionsUtil.billboard);
         var billboardOptions = combine(billboard, billboardStyle, false);
 
         var label = {
             position : this._position,
             text : this._description.name || '未命名'
         };
-        var labelStyle = defaultValue(options.labelStyle, defaultValue.EMPTY_OBJECT);
+        var labelStyle = defaultValue(options.labelStyle, OptionsUtil.label);
         var labelOptions = combine(label, labelStyle, false);
 
         if (defined(this._layer)) {
@@ -157,7 +127,7 @@ define(['../../Core/createGuid',
                 this._callback = value;
             },
             get : function() {
-                return this._callback || defaultCallback;
+                return this._callback || defaultDescriptCallback;
             }
         },
         description : {
@@ -172,6 +142,10 @@ define(['../../Core/createGuid',
         position : {
             set : function(value) {
                 this._position = value;
+                this._billboard.position = value;
+                if(this._showLabel){
+                    this._label.position = value;
+                }
             },
             get : function() {
                 return this._position;

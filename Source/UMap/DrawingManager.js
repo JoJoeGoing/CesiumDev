@@ -245,32 +245,25 @@ define(['../Core/defined',
         }
 
         function drawMarker(manager, options) {
-            options = options || {};
-            exchangeImageUrl(manager, false);
+           
+            manager._beforeDrawing(true,options);
+            manager._drawingMode = DrawingTypes.DRAWING_MARKER;
+
             var scene = manager._scene;
             var tooltip = manager._tooltip;
-
-            // options.shiftX = options.shiftX || 0;
-            // options.shiftY = options.shiftY || 0;
             var height = options.height || 0;
+            var marker = null;
+           
+            if(defined(options.id)){
+                marker = manager._markerCollection.get(options.id);
 
-            manager._beforeDrawing(function () {
-                self._mouseHandler = self._mouseHandler && self._mouseHandler.destroy();
-                tooltip = tooltip && tooltip.setVisible(false);
-            });
-            manager._drawingMode = DrawingTypes.DRAWING_MARKER;
-            manager._dispatchOverlayBegin(options);
-
-            var markers = new MarkerCollection(self._viewer);
-
-            var primitive = void 0;
-
-            if (defined(options.data) && defined(options.data.id)) {
-                primitive = self._drawPrimitives.findPrimitiveByDataId(options.data.id);
             }
 
-            self._mouseHandler = new ScreenSpaceEventHandler(scene.canvas);
-            self._mouseHandler.setInputAction(function (movement) {
+            // if (defined(options.data) && defined(options.data.id)) {
+            //     primitive = self._drawPrimitives.findPrimitiveByDataId(options.data.id);
+            // }
+            
+            manager._mouseHandler.setInputAction(function (movement) {
                 if (null !== movement.position) {
                     var pickedFeature = scene.pick(movement.position);
                     if (defined(pickedFeature)) {
@@ -283,30 +276,31 @@ define(['../Core/defined',
                         var precision = CesiumMath.EPSILON7;
                         var points = [Cartographic.fromRadians(center.longitude - precision, center.latitude - precision, center.height), Cartographic.fromRadians(center.longitude + precision, center.latitude + precision, center.height)];
 
-                        if (primitive) {
-                            primitive._markers[0].position = cartesian3;
-                            self._afterDrawing();
+                        if (marker) {
+                            marker.position = cartesian3;
                         } else {
-                            options.lon = CesiumMath.toDegrees(center.longitude);
-                            options.lat = CesiumMath.toDegrees(center.latitude);
-                            options.height = center.height;
-                            options.data = points;
-                            primitive = markers.addModel(options);
-                            self._afterDrawing();
-                            self._drawPrimitives.add(markers);
-                            primitive.setEditable(true);
+                            options.position = cartesian3;
+                            options.viewer = manager.viewer;
+                            marker = new Marker(options,{
+                                billboards:manager._billboardCollection,
+                                labels:manager._labelCollection
+                            });
+                            manager._markerCollection.set(marker.id,marker);
+                            //manager._drawPrimitives.add(markers);
+                            //marker.setEditable(true);
                         }
-                        self._dispatchOverlayComplete(primitive, [center], {
+                        manager._dispatchOverlayComplete(marker, [center], {
                             extent: points
                         }, options);
-                        scene.refreshOnce = true;
+                        manager._afterDrawing();
+                        manager.closeDraw();
                     }
                 }
             }, ScreenSpaceEventType.LEFT_CLICK);
 
-            self._mouseHandler.setInputAction(function (movement) {
+            manager._mouseHandler.setInputAction(function (movement) {
                 var position = movement.endPosition;
-                if (null !== position && self._showTooltip) {
+                if (null !== position && manager._showTooltip) {
                     tooltip.showAt(position, '点击添加');
                 }
             }, ScreenSpaceEventType.MOUSE_MOVE);
@@ -542,6 +536,11 @@ define(['../Core/defined',
                     return this._scene;
                 }
             },
+            viewer: {
+                get: function () {
+                    return this._viewer;
+                }
+            },
             dragEndEvent: {
                 get: function () {
                     return this._dragEndEvent;
@@ -576,7 +575,7 @@ define(['../Core/defined',
 
         DrawingManager.prototype._beforeDrawing = function (options,callback) {
             var that = this;
-
+            this._tooltip.setVisible(true);
             this._dispatchOverlayBegin(options);
 
             this._scene.screenSpaceCameraController.enableLook = false;
@@ -596,11 +595,14 @@ define(['../Core/defined',
         DrawingManager.prototype._afterDrawing = function () {       
             this._reDraw = false;
             this._tooltip.setVisible(false);
+            this._scene.refreshOnce = true;
+
         };
 
         DrawingManager.prototype.closeDraw = function () {
 
             this._mouseHandler = this._mouseHandler && this._mouseHandler.destroy();
+            this._tooltip.setVisible(false);
 
             if (defined(this._scene)) {
                 this._scene.screenSpaceCameraController.enableLook = true;
@@ -970,6 +972,7 @@ define(['../Core/defined',
 
             Tooltip.prototype.setVisible = function (visible) {
                 this._div.style.display = visible ? 'block' : 'none';
+                this._title.innerHTML="";
             };
             Tooltip.prototype.setAllVisible = function (visible) {
                 this.setVisible(visible);
