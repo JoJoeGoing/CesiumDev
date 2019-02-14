@@ -185,14 +185,6 @@ define(['../../Core/defaultValue',
             layer.billboards = this._billboardCollection;
             layer.labels = this._labelCollection;
             this._createLayer(layer);
-            // for(var i = 0 ; i < code.length ; i++){
-            //     layer.id = code[i] + '_' + layer.layerCategory;
-            //     if(this._layerList.contains(layer.id)){
-            //         break;
-            //     }
-            //     layer.codeNum = code[i];
-            //     this._createLayer(layer);
-            // }
         }
     };
 
