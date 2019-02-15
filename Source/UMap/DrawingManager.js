@@ -30,6 +30,7 @@ define(['../Core/defined',
         './Primitive/PolylinePrimitive',
         './Primitive/PolygonPrimitive',
         './Primitive/Marker',
+        './Primitive/ModelPrimitive',
         './pickGlobe'
     ],
     function (defined, defineProperties, destroyObject,
@@ -37,7 +38,7 @@ define(['../Core/defined',
         Cartesian3, CesiumMath, defaultValue, Ellipsoid, EllipsoidGeodesic,
         ScreenSpaceEventHandler, ScreenSpaceEventType, Color, Rectangle, buildModuleUrl,
         Cartographic, Event, AssociativeArray, SceneTransforms, HeightReference, PrimitiveCollection, BillboardCollection, LabelCollection, getElement,
-        DrawingTypes, DrawingEvent, CirclePrimitive, RectanglePrimitive, PolylinePrimitive, PolygonPrimitive, Marker, pickGlobe) {
+        DrawingTypes, DrawingEvent, CirclePrimitive, RectanglePrimitive, PolylinePrimitive, PolygonPrimitive, Marker,ModelPrimitive, pickGlobe) {
         'use strict';
         var screenPosition = new Cartesian2();
         var ellipsoid = Ellipsoid.WGS84;
@@ -57,11 +58,11 @@ define(['../Core/defined',
         };
 
         function drawCircle(manager, options, saveToBuffer) {
-           
-            manager._beforeDrawing(saveToBuffer,options);
-            
+
+            manager._beforeDrawing(saveToBuffer, options);
+
             manager._drawingMode = DrawingTypes.DRAWING_CIRCLE;
-           
+
             var scene = manager._scene;
             var primitive = manager._drawPrimitives;
             var tooltip = manager._tooltip;
@@ -110,7 +111,7 @@ define(['../Core/defined',
                 if (manager._reDraw && null !== movement.position) {
                     var position = pickGlobe(scene, movement.position, height);
                     if (position && null !== circlePrimitive) {
-                       
+
                         tooltip.showCircleLabelText(movement.position, 0, false);
 
                         options.center = circlePrimitive.getCenter();
@@ -131,10 +132,10 @@ define(['../Core/defined',
                         //TODO: recode
                         manager._dispatchOverlayComplete(newCirclePrimitive, cartographicArray, {
                             center: centerLatLng,
-                            radius: circlePrimitive.getRadius(), 
+                            radius: circlePrimitive.getRadius(),
                             target: this
                         }, options);
-     
+
                         if (null !== circlePrimitive) {
                             primitive.remove(circlePrimitive);
                             circlePrimitive = null;
@@ -152,12 +153,12 @@ define(['../Core/defined',
         }
 
         function drawRectangle(manager, options, saveToBuffer) {
-            
-            manager._beforeDrawing(saveToBuffer,options);
 
-            if(saveToBuffer){
+            manager._beforeDrawing(saveToBuffer, options);
+
+            if (saveToBuffer) {
                 manager._drawingMode = DrawingTypes.DRAWING_RECTANGLE;
-            }else{
+            } else {
                 manager._drawingMode = DrawingTypes.DRAWING_RECTANGLE_QUERY;
             }
 
@@ -245,24 +246,19 @@ define(['../Core/defined',
         }
 
         function drawMarker(manager, options) {
-           
-            manager._beforeDrawing(true,options);
+
+            manager._beforeDrawing(true, options);
             manager._drawingMode = DrawingTypes.DRAWING_MARKER;
 
             var scene = manager._scene;
             var tooltip = manager._tooltip;
             var height = options.height || 0;
             var marker = null;
-           
-            if(defined(options.id)){
-                marker = manager._markerCollection.get(options.id);
 
+            if (defined(options.id)) {
+                marker = manager._markerCollection.get(options.id);
             }
 
-            // if (defined(options.data) && defined(options.data.id)) {
-            //     primitive = self._drawPrimitives.findPrimitiveByDataId(options.data.id);
-            // }
-            
             manager._mouseHandler.setInputAction(function (movement) {
                 if (null !== movement.position) {
                     var pickedFeature = scene.pick(movement.position);
@@ -281,11 +277,11 @@ define(['../Core/defined',
                         } else {
                             options.position = cartesian3;
                             options.viewer = manager.viewer;
-                            marker = new Marker(options,{
-                                billboards:manager._billboardCollection,
-                                labels:manager._labelCollection
+                            marker = new Marker(options, {
+                                billboards: manager._billboardCollection,
+                                labels: manager._labelCollection
                             });
-                            manager._markerCollection.set(marker.id,marker);
+                            manager.markers.set(marker.id, marker);
                             //manager._drawPrimitives.add(markers);
                             //marker.setEditable(true);
                         }
@@ -308,10 +304,64 @@ define(['../Core/defined',
 
         function drawModel(manager, options, saveToBuffer) {
 
+            manager._beforeDrawing(true, options);
+
+            manager._drawingMode = DrawingTypes.DRAWING_MODEL;
+
+            var scene = manager._scene;
+            var tooltip = manager._tooltip;
+            var height = options.height || 0;
+            var model = null;
+
+            if (define(options.id)) {
+                model = manager.models.get(options.id);
+            }
+
+            manager._mouseHandler.setInputAction(function (movement) {
+                if (null !== movement.position) {
+                    var pickedFeature = scene.pick(movement.position);
+                    if (defined(pickedFeature)) {
+                        var cart = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
+                        height = Cartographic.fromCartesian(cart).height;
+                    }
+                    var position = pickGlobe(scene, movement.position, height);
+                    if (position) {
+                        var center = ellipsoid.cartesianToCartographic(position);
+                        var precision = CesiumMath.EPSILON7;
+                        var points = [Cartographic.fromRadians(center.longitude - precision, center.latitude - precision, center.height), Cartographic.fromRadians(center.longitude + precision, center.latitude + precision, center.height)];
+
+                        if (model) {
+                            model.position = position;
+                        } else {
+                            options.position = position;
+                            options.properties.location = points;
+                            //options.heightReference = HeightReference.NONE;
+                            options.viewer = manager.viewer;
+                            model = new ModelPrimitive(options);
+                            //todo 未添加tittle
+                            manager.drawPrimitives.add(model.model);
+                            manager.models.set(model.id,model);
+                        }
+
+                        manager._dispatchOverlayComplete(model, [center], {
+                            extent: points
+                        }, options);
+                        manager._afterDrawing();
+                        manager.closeDraw();
+                    }
+                }
+            }, ScreenSpaceEventType.LEFT_CLICK);
+
+            manager._mouseHandler.setInputAction(function (movement) {
+                var position = movement.endPosition;
+                if (null !== position && manager._showTooltip) {
+                    tooltip.showAt(position, '点击添加');
+                }
+            }, ScreenSpaceEventType.MOUSE_MOVE);
         }
 
         function _drawPoly(manager, options, isPolygon, saveToBuffer) {
-            manager._beforeDrawing(saveToBuffer,options);
+            manager._beforeDrawing(saveToBuffer, options);
 
             var poly = null;
             var scene = manager._scene;
@@ -346,7 +396,7 @@ define(['../Core/defined',
                         if (0 === cartesianPositions.length) {
                             cartesianPositions.push(cartesian.clone());
                         }
-                        if(poly === null){
+                        if (poly === null) {
                             if (isPolygon) {
                                 poly = new PolygonPrimitive(options);
                             } else {
@@ -452,10 +502,10 @@ define(['../Core/defined',
                                 target: manager
                             }, options);
                         }
-                        
+
                         cartesianPositions = [];
                         if (null !== poly) {
-                            primitive.remove(poly);  
+                            primitive.remove(poly);
                             poly = null;
                         }
                         manager._afterDrawing();
@@ -482,8 +532,11 @@ define(['../Core/defined',
                 scene: this._scene
             }));
 
+            //存放绘制的二维点，key-value. key是该点的id
             this._markerCollection = new AssociativeArray();
 
+            //存放绘制的三维模型
+            this._modelCollection = new AssociativeArray();
 
             if (!defined(this._drawPrimitives)) {
                 var collection = new PrimitiveCollection();
@@ -541,6 +594,16 @@ define(['../Core/defined',
                     return this._viewer;
                 }
             },
+            markers: {
+                get: function () {
+                    return this._markerCollection;
+                }
+            },
+            models: {
+                get: function () {
+                    return this._modelCollection;
+                }
+            },
             dragEndEvent: {
                 get: function () {
                     return this._dragEndEvent;
@@ -554,7 +617,8 @@ define(['../Core/defined',
                 var method = drawHandler[type];
                 if (method) {
                     options = options || {};
-                    if(typeof saveToBuffer !== 'boolean'){
+                    options.properties = options.properties||{};
+                    if (typeof saveToBuffer !== 'boolean') {
                         saveToBuffer = false;
                     }
                     method(this, options, saveToBuffer);
@@ -573,7 +637,7 @@ define(['../Core/defined',
             this._showTooltip = visible;
         };
 
-        DrawingManager.prototype._beforeDrawing = function (options,callback) {
+        DrawingManager.prototype._beforeDrawing = function (options, callback) {
             var that = this;
             this._tooltip.setVisible(true);
             this._dispatchOverlayBegin(options);
@@ -581,18 +645,18 @@ define(['../Core/defined',
             this._scene.screenSpaceCameraController.enableLook = false;
             this._scene.screenSpaceCameraController.enableTilt = false;
             this._scene.screenSpaceCameraController.enableRotate = false;
-         
+
             this._mouseHandler = this._mouseHandler && this._mouseHandler.destroy();
             this._mouseHandler = new ScreenSpaceEventHandler(this._scene.canvas);
-            this._mouseHandler.setInputAction(function(){
+            this._mouseHandler.setInputAction(function () {
                 that.closeDraw();
-            },ScreenSpaceEventType.RIGHT_CLICK);
+            }, ScreenSpaceEventType.RIGHT_CLICK);
 
             exchangeImageUrl(this, false);
 
         };
 
-        DrawingManager.prototype._afterDrawing = function () {       
+        DrawingManager.prototype._afterDrawing = function () {
             this._reDraw = false;
             this._tooltip.setVisible(false);
             this._scene.refreshOnce = true;
@@ -972,7 +1036,7 @@ define(['../Core/defined',
 
             Tooltip.prototype.setVisible = function (visible) {
                 this._div.style.display = visible ? 'block' : 'none';
-                this._title.innerHTML="";
+                this._title.innerHTML = "";
             };
             Tooltip.prototype.setAllVisible = function (visible) {
                 this.setVisible(visible);
