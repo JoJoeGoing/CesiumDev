@@ -55,6 +55,15 @@ define(['../Core/Cartesian2',
 
     };
 
+    OptionsUtil.modelStyle = {
+        scale : 1.0,
+        color : Color.WHITE,
+        shadows : false,
+        allowPicking : true,
+        debugShowBoundingVolume: false,
+        show:true
+    };
+
 
     return OptionsUtil;
 });
