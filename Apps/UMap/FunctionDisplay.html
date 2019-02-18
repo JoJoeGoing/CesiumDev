@@ -84,14 +84,39 @@
         var circleSelect = document.getElementById('circleSelect');
         if (circleSelect) {
             circleSelect.addEventListener('click', function () {
-                drawer.draw('circle');
+                drawer.removeEventListener('circleComplete');
+                drawer.addEventListener('circleComplete', function (type, object) {
+                    // console.log(object);
+                    var primitive = object.primitive;
+                    if (primitive) {
+                        var rectangle = primitive.getRectangleBounding();
+                        var list = layerManager.search(rectangle);
+                        console.log(list);
+                    }
+                });
+                drawer.draw('circle', true, {
+                    customId: 'circle'
+                });
             });
         }
 
         var rectangleSelect = document.getElementById('rectangleSelect');
         if (rectangleSelect) {
             rectangleSelect.addEventListener('click', function () {
-                drawer.draw('rectangle')
+
+                drawer.removeEventListener('rectangleComplete');
+                drawer.addEventListener('rectangleComplete', function (type, object) {
+                    // console.log(object);
+                    var primitive = object.primitive;
+                    if (primitive) {
+                        var rectangle = primitive.getRectangleBounding();
+                        var list = layerManager.search(rectangle);
+                        console.log(list);
+                    }
+                });
+                drawer.draw('rectangle',true, {
+                    customId: 'rectangle'
+                });
             });
         }
 
@@ -107,7 +132,7 @@
         var polygon = document.getElementById('polygon');
         if (polygon) {
             polygon.addEventListener('click', function () {
-                drawer.draw('polygon', false);
+                drawer.draw('polygon', true);
             });
         }
 
@@ -149,16 +174,16 @@
         var model = document.getElementById('model');
         if (model) {
             model.addEventListener('click', function () {
-                drawer.draw('model',false,{
-                    properties : {
-                        '名字' : '恐龙',
-                        '描述' : '就问你怕不怕'
+                drawer.draw('model', false, {
+                    properties: {
+                        '名字': '恐龙',
+                        '描述': '就问你怕不怕'
                     },
-                    modelStyle:{
-                        scale : 20000,
+                    modelStyle: {
+                        scale: 20000,
                     }
                 });
-             
+
             });
         }
 
@@ -167,6 +192,7 @@
         var drawer = null;
         var cesium;
         var viewer;
+        var layerManager;
 
         function startup(Cesium) {
             cesium = Cesium;
@@ -306,7 +332,7 @@
                                     'layerStyle': eval('(' + child.style + ')'),
                                     'layerProperty': eval('(' + child.property + ')'),
                                     'refreshable': child.refreshable,
-                                    'imgPath': 'camera_qiangji.png',
+                                    'imgPath': child.layerCategory+'.png',
                                     'layerIcons': JSON.parse(child.layerIcons),
                                     'layerName': child.resourceName,
                                     'codeName': child.conditionField,
