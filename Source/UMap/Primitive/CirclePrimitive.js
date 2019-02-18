@@ -1,34 +1,34 @@
 define(['../../Core/defined',
-        '../../Core/destroyObject',
-        '../../Core/defaultValue',
-        '../../Core/DeveloperError',
-        '../../Core/Cartesian3',
-        '../../Core/CircleGeometry',
-        '../../Core/CircleOutlineGeometry',
-        '../../Core/Math',
-        '../../Core/Color',
-        '../../Core/buildModuleUrl',
-        '../../Core/ScreenSpaceEventType',
-        '../../Core/ScreenSpaceEventHandler',
-        '../../Core/Rectangle',
-        '../../Core/Ellipsoid',
-        '../../Scene/HeightReference',
-        '../../Scene/EllipsoidSurfaceAppearance',
-        '../../Scene/Material',
-        '../DrawingTypes',
-        './ChangeablePrimitive'
-       
+    '../../Core/destroyObject',
+    '../../Core/defaultValue',
+    '../../Core/DeveloperError',
+    '../../Core/Cartesian3',
+    '../../Core/CircleGeometry',
+    '../../Core/CircleOutlineGeometry',
+    '../../Core/Math',
+    '../../Core/Color',
+    '../../Core/buildModuleUrl',
+    '../../Core/ScreenSpaceEventType',
+    '../../Core/ScreenSpaceEventHandler',
+    '../../Core/Rectangle',
+    '../../Core/Ellipsoid',
+    '../../Scene/HeightReference',
+    '../../Scene/EllipsoidSurfaceAppearance',
+    '../../Scene/Material',
+    '../DrawingTypes',
+    './ChangeablePrimitive'
+
 ], function (defined, destroyObject, defaultValue, DeveloperError, Cartesian3,
-            CircleGeometry, CircleOutlineGeometry, CesiumMath, Color, buildModuleUrl,
-            ScreenSpaceEventType, ScreenSpaceEventHandler, Rectangle, Ellipsoid,
-            HeightReference, EllipsoidSurfaceAppearance, Material, DrawingTypes,
-            ChangeablePrimitive) {
+    CircleGeometry, CircleOutlineGeometry, CesiumMath, Color, buildModuleUrl,
+    ScreenSpaceEventType, ScreenSpaceEventHandler, Rectangle, Ellipsoid,
+    HeightReference, EllipsoidSurfaceAppearance, Material, DrawingTypes,
+    ChangeablePrimitive) {
     'use strict';
 
     var defaultOptions = {
-        iconUrl : buildModuleUrl('Widgets/Images/DrawingManager/dragIcon.png'),
-        shiftX : 0,
-        shiftY : 0
+        iconUrl: buildModuleUrl('Widgets/Images/DrawingManager/dragIcon.png'),
+        shiftX: 0,
+        shiftY: 0
     };
 
     /**
@@ -49,14 +49,14 @@ define(['../../Core/defined',
         }
         this.initialiseOptions(options);
         this.center = options.center;
-        this._material =Material.fromType('Color',{
-            color : this.color
+        this._material = Material.fromType('Color', {
+            color: this.color
         });
         this.appearance = new EllipsoidSurfaceAppearance({
-            material : this._material,
-            aboveGround : true,
-            renderState : {
-                lineWidth : 1
+            material: this._material,
+            aboveGround: true,
+            renderState: {
+                lineWidth: 1
             }
         });
         this.setRadius(options.radius);
@@ -78,56 +78,57 @@ define(['../../Core/defined',
 
     CirclePrimitive.prototype = new ChangeablePrimitive();
 
-    CirclePrimitive.prototype.getType = function() {
+    CirclePrimitive.prototype.getType = function () {
         return DrawingTypes.DRAWING_CIRCLE;
     };
 
-    CirclePrimitive.prototype.setCenter = function(center) {
+    CirclePrimitive.prototype.setCenter = function (center) {
         this.setAttribute('center', center);
     };
 
-    CirclePrimitive.prototype.setRadius = function(radius) {
+    CirclePrimitive.prototype.setRadius = function (radius) {
         this.setAttribute('radius', Math.max(0.1, radius));
     };
 
-    CirclePrimitive.prototype.getCenter = function() {
+    CirclePrimitive.prototype.getCenter = function () {
         return this.getAttribute('center');
     };
 
-    CirclePrimitive.prototype.getRadius = function() {
+    CirclePrimitive.prototype.getRadius = function () {
         return this.getAttribute('radius');
     };
 
-    CirclePrimitive.prototype.getGeometry = function() {
+    CirclePrimitive.prototype.getGeometry = function () {
         if (defined(this.center) && defined(this.radius)) {
             return new CircleGeometry({
-                center : this.center,
-                radius : this.radius,
-                height : this.height,
-                vertexFormat : EllipsoidSurfaceAppearance.VERTEX_FORMAT,
-                stRotation : this.textureRotationAngle,
-                ellipsoid : this.ellipsoid,
-                granularity : this.granularity
+                center: this.center,
+                radius: this.radius,
+                height: this.height,
+                vertexFormat: EllipsoidSurfaceAppearance.VERTEX_FORMAT,
+                stRotation: this.textureRotationAngle,
+                ellipsoid: this.ellipsoid,
+                granularity: this.granularity
             });
         }
     };
 
-    CirclePrimitive.prototype.getOutlineGeometry = function() {
+    CirclePrimitive.prototype.getOutlineGeometry = function () {
         return new CircleOutlineGeometry({
-            height : this.height,
-            center : this.getCenter(),
-            radius : this.getRadius()
+            height: this.height,
+            center: this.getCenter(),
+            radius: this.getRadius()
         });
     };
 
-    CirclePrimitive.prototype.getCircleCartesianCoordinates = function(granularity) {
+    CirclePrimitive.prototype.getCircleCartesianCoordinates = function (granularity) {
         var geometry = CircleOutlineGeometry.createGeometry(new CircleOutlineGeometry({
-            ellipsoid : this.ellipsoid,
-            center : this.getCenter(),
-            radius : this.getRadius(),
-            granularity : granularity
+            ellipsoid: this.ellipsoid,
+            center: this.getCenter(),
+            radius: this.getRadius(),
+            granularity: granularity
         }));
-        var count = 0, value, values = [];
+        var count = 0,
+            value, values = [];
         for (; count < geometry.attributes.position.values.length; count += 3) {
             value = geometry.attributes.position.values;
             values.push(new Cartesian3(value[count], value[count + 1], value[count + 2]));
@@ -135,57 +136,23 @@ define(['../../Core/defined',
         return values;
     };
 
-    CirclePrimitive.prototype.filter = function(primitive) {
-        var drawingType = primitive.getType();
-        if (primitive.queryPrimitive) {
-            return false;
-        }
-        if (drawingType === DrawingTypes.DRAWING_POLYLINE || drawingType === DrawingTypes.DRAWING_POLYGON || drawingType === DrawingTypes.DRAWING_POLYLINE_ARROW) {
-            if (!defined(primitive.positions)) {
-                return false;
-            }
-            for (var i = 0; i < primitive.positions.length; i++) {
-                if (Cartesian3.distance(this.center, primitive.positions[i]) <= this.getRadius()) {
-                    return true;
-                }
-            }
-        } else if (drawingType === DrawingTypes.DRAWING_MARKER) {
-            if (defined(primitive.length)) {
-                for (var j = 0; j < primitive.length; j++) {
-                    var o = primitive.get(j);
-                    if (Cartesian3.distance(this.center, o.position) <= this.getRadius()) {
-                        return true;
-                    }
-                }
-            } else if (Cartesian3.distance(this.center, primitive.position) <= this.getRadius()) {
-                return true;
-            }
-        } else if (drawingType === DrawingTypes.DRAWING_CIRCLE) {
-            if (Cartesian3.distance(this.center, primitive.center) <= this.getRadius() + primitive.getRadius()) {
-                return true;
-            }
-        } else {
-            if (drawingType === DrawingTypes.DRAWING_RECTANGLE) {
-                var cartesianArray = getBounding(primitive.getExtentCorners());
-                return !(cartesianArray[0] > this.center.x + this.radius || cartesianArray[1] < this.center.x - this.radius || cartesianArray[2] > this.center.y + this.radius || cartesianArray[3] < this.center.y - this.radius);
-            }
-            if (drawingType === DrawingTypes.DRAWING_MODEL) {
-                if (defined(primitive.length)) {
-                    for (var k = 0; k < primitive.length; k++) {
-                        var model = primitive.get(k);
-                        if (Cartesian3.distance(this.center, model.position) <= this.getRadius()) {
-                            return true;
-                        }
-                    }
-                } else if (Cartesian3.distance(this.center, primitive.position) <= this.getRadius()) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    CirclePrimitive.prototype.getRectangleBounding = function () {
+        var center = this.getCenter();
+        var x = center.x;
+        var y = center.y;
+        var z = center.z;
+
+        var radius = this.getRadius();
+        var cartesianArray = [];
+        cartesianArray[0] = new Cartesian3(x + radius, y , z+ radius);
+        cartesianArray[1] = new Cartesian3(x - radius, y , z+ radius);
+        cartesianArray[2] = new Cartesian3(x + radius, y , z- radius);
+        cartesianArray[3] = new Cartesian3(x - radius, y , z- radius);
+
+        return  Rectangle.fromCartesianArray(cartesianArray);
     };
 
-    CirclePrimitive.prototype.toJson = function() {
+    CirclePrimitive.prototype.toJson = function () {
         if (defined(this.center) && defined(this.radius)) {
             var position = this.ellipsoid.cartesianToCartographic(this.center);
             // var color = '#F00';
@@ -193,13 +160,13 @@ define(['../../Core/defined',
             //     color = this.material.uniforms.color.toCssColorString();
             // }
             var geoJson = {
-                type : this.type,
-                geometry : {
-                    center : [CesiumMath.toDegrees(position.longitude), CesiumMath.toDegrees(position.latitude)],
-                    radius : this.getRadius()
+                type: this.type,
+                geometry: {
+                    center: [CesiumMath.toDegrees(position.longitude), CesiumMath.toDegrees(position.latitude)],
+                    radius: this.getRadius()
                 },
-                properties : {
-                    color : this.color.toCssColorString()
+                properties: {
+                    color: this.color.toCssColorString()
                 }
             };
             geoJson.properties.height = defaultValue(this.height, 0);
@@ -208,7 +175,7 @@ define(['../../Core/defined',
         }
     };
 
-    CirclePrimitive.fromJson = function(jsonString, options) {
+    CirclePrimitive.fromJson = function (jsonString, options) {
         var json = JSON.parse(jsonString);
         options = defaultValue(options, {});
         if (defined(json.properties.color)) {
@@ -230,7 +197,7 @@ define(['../../Core/defined',
     };
 
     //todo: BillboardGroup为引入
-    CirclePrimitive.prototype.setEditable = function(editMode) {
+    CirclePrimitive.prototype.setEditable = function (editMode) {
         editMode = defaultValue(editMode, true);
         this._editable = editMode;
         var self = this;
@@ -241,7 +208,7 @@ define(['../../Core/defined',
             self.asynchronous = false;
             if (editMode) {
                 drawingManager.registerEditableShape(self);
-                self.setEditMode = function(editMode) {
+                self.setEditMode = function (editMode) {
 
                     if (this._editMode !== editMode) {
                         drawingManager.disableAllHighlights();
@@ -250,18 +217,18 @@ define(['../../Core/defined',
                             if (null === this._markers) {
                                 var markers = new BillboardGroup(drawingManager, defaultOptions);
                                 var handleMarkerChanges = {
-                                    dragHandlers : {
-                                        onDrag : function(index, position) {
+                                    dragHandlers: {
+                                        onDrag: function (index, position) {
                                             scene.renderAlways = true;
                                             self.setRadius(Cartesian3.distance(self.getCenter(), position));
                                             markers.updateBillboardsPositions(getMarkerPositions());
                                         },
-                                        onDragEnd : function() {
+                                        onDragEnd: function () {
                                             onEdited();
                                             scene.renderAlways = false;
                                         }
                                     },
-                                    tooltip : function() {
+                                    tooltip: function () {
                                         return '拖动改变半径';
                                     }
                                 };
@@ -269,7 +236,7 @@ define(['../../Core/defined',
                                 this._markers = markers;
                                 this._globeClickhandler = new ScreenSpaceEventHandler(scene.canvas);
 
-                                this._globeClickhandler.setInputAction(function(movement) {
+                                this._globeClickhandler.setInputAction(function (movement) {
                                     var pickedObject = scene.pick(movement.position);
                                     if (pickedObject && pickedObject.primitive) {
                                         self.setEditMode(false);
@@ -294,9 +261,9 @@ define(['../../Core/defined',
 
                     function onEdited() {
                         drawingManager._dispatchOverlayEdited(self, {
-                            name : 'onEdited',
-                            center : self.getCenter(),
-                            radius : self.getRadius()
+                            name: 'onEdited',
+                            center: self.getCenter(),
+                            radius: self.getRadius()
                         });
                     }
                 };

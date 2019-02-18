@@ -6,13 +6,14 @@ define(['../../Core/createGuid',
         '../../Core/defineProperties',
         '../../Core/defaultValue',
         '../../Core/Cartesian3',
+        '../../Core/Math',
+        '../../Core/Rectangle',
         '../../Core/buildModuleUrl',
         '../../DataSources/CallbackProperty',
         '../OptionsUtil',
         '../defaultDescriptCallback'
 ], function(createGuid, defined, combine, destroyObject, DeveloperError,
-            defineProperties, defaultValue,
-            Cartesian3, buildModuleUrl,CallbackProperty,OptionsUtil,defaultDescriptCallback) {
+            defineProperties, defaultValue, Cartesian3,CesiumMath,Rectangle, buildModuleUrl,CallbackProperty,OptionsUtil,defaultDescriptCallback) {
     'use strict';
 
     /**
@@ -182,6 +183,18 @@ define(['../../Core/createGuid',
         }
         this._layer = undefined;
         destroyObject(this);
+    };
+
+    Marker.prototype.filter = function(rectangle){
+      
+        var cartographic = this.viewer.scene.globe.ellipsoid.cartesianToCartographic(this.position);
+        
+        if(!cartographic){
+            return false;
+        }
+        //cartographic.height = 0;
+        return Rectangle.contains(rectangle, cartographic);
+      
     };
     return Marker;
 });

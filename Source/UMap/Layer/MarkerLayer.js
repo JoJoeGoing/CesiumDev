@@ -22,6 +22,7 @@ define(['../../Core/defined',
             BillboardCollection,LabelCollection, PrimitiveCollection, OptionsUtil,Marker) {
     'use strict';
 
+    //todo:这样声明，所有的实体类共同具有这一个对象.因此需注意初始化
     var WFS = {
         service : 'WFS',
         request : 'GetFeature',
@@ -123,6 +124,8 @@ define(['../../Core/defined',
             scene : scene
         }));
 
+        this._layerCategory = options.layerCategory;
+       
         var codeName = options.codeName;
         var layerName = options.layerName;
         var codeNum = options.codeNum;
@@ -130,10 +133,11 @@ define(['../../Core/defined',
 
         if (defined(options.dataBaseSpace)) {
             var dataBaseSpace = options.dataBaseSpace;
-            WFS.typename = dataBaseSpace + ':' + layerName;
+            this._layerName =  dataBaseSpace + ':' + layerName;
         } else {
-            WFS.typename = layerName;
+            this._layerName = layerName;
         }
+       
         this._cql_filter = '(' + codeName + '%20' + 'like' + '%20' + "'" + '%25' + codeNum + '%25' + "'" + ')%20AND%20INTERSECTS' + '(' + tableName + ',';
 
         this._show = defaultValue(options.show, true);
@@ -177,17 +181,22 @@ define(['../../Core/defined',
             get : function() {
                 return this._markers;
             }
+        },
+        layerCategory:{
+            get:function(){
+                return this._layerCategory;
+            }
         }
     });
 
     MarkerLayer.prototype.init = function(callback, obj) {
         var that = this;
+        WFS.typename = this._layerName;
         var url = this.url;
         fetchGeoJson(url).then(function(JsonObj) {
             var features = JsonObj.features;
             for (var i = 0; i < features.length; i++) {
-                var position = Cartesian3.fromDegrees(features[i].geometry.coordinates[0], features[i].geometry.coordinates[1], features[i].properties.height);
-                //var properties = features[i].properties;
+                var position = Cartesian3.fromDegrees(features[i].geometry.coordinates[0], features[i].geometry.coordinates[1], 0);
                 var options = {
                     id : features[i].id,
                     viewer : that._viewer,
@@ -220,6 +229,20 @@ define(['../../Core/defined',
             markers[index].destroy();
         }
         this.markers.removeAll();
+    };
+
+    MarkerLayer.prototype.filter = function(rectangle,result){
+        if(!defined(result) ||  !(result instanceof Array)){
+            result = [];
+        }
+        var markers = this.markers.values;
+        for(var i = 0; i < markers.length; i ++){
+            var p = markers[i];
+            if(p.filter(rectangle)){
+                result.push(p);
+            }
+        }
+        return result;
     };
 
     MarkerLayer.prototype.destroy = function() {

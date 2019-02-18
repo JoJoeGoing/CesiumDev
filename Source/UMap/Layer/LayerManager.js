@@ -87,7 +87,7 @@ define(['../../Core/defaultValue',
         cluster.pixelRange = 0;
         cluster.pixelRange = pixelRange;
     }
-
+    //ToDo:聚合导致显示隐藏有Bug
     /**
      * 管理所有的图层。每个图层一般版含有多个最小的绘制单元。例如：LayerManager中有公安局1的枪机、公安局1的球机、公安局2的枪机、公安局2的球机。
      * 公安局1的枪机是一个图层，公安局2的枪机也是一个图层。枪机/球机图层均包含有多个枪机/球机。
@@ -157,6 +157,23 @@ define(['../../Core/defaultValue',
      */
     LayerManager.prototype.add = function(key, value) {
         this._layerList.set(key, value);
+    };
+
+    LayerManager.prototype.search = function(rectangle,result){
+        if(!defined(result) ||  !(result instanceof Array)){
+            result = [];
+        }
+        if(!defined(rectangle) &&  rectangle instanceof Rectangle){
+            return result;
+        }
+        var markers = this.layers.values;
+        //todo: 数据过多时，会导致阻塞。可优化
+        for(var i = 0; i < markers.length; i ++){
+            var layer = markers[i];
+            layer.filter(rectangle,result);
+           
+        }
+        return result;
     };
 
     /**

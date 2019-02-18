@@ -111,59 +111,10 @@ define(['../../Core/defined',
             });
         };
 
-        RectanglePrimitive.prototype.filter = function(primitive) {
-            var drawingType = primitive.getType();
-            if (primitive.queryPrimitive) {
-                return false;
-            }
-            if (drawingType === DrawingTypes.DRAWING_POLYLINE || drawingType === DrawingTypes.DRAWING_POLYLINE_ARROW || drawingType === DrawingTypes.DRAWING_POLYGON) {
-                if (!defined(primitive.positions)) {
-                    return false;
-                }
-                for (var position = 0; position < primitive.positions.length; position++) {
-                    resultPoint = this.ellipsoid.cartesianToCartographic(primitive.positions[position], resultPoint);
-                    if (Rectangle.contains(this.extent, resultPoint)) {
-                        return true;
-                    }
-                }
-            } else if (drawingType === DrawingTypes.DRAWING_MARKER) {
-                if (defined(primitive.length)) {
-                    for (var point = 0; point < primitive.length; point++) {
-                        var marker = primitive.get(point);
-                        resultPoint = this.ellipsoid.cartesianToCartographic(marker.billboard.position, resultPoint);
-                        if (Rectangle.contains(this.extent, resultPoint)) {
-                            return true;
-                        }
-                    }
-                } else if (Rectangle.contains(this.extent, resultPoint)) {
-                    resultPoint = this.ellipsoid.cartesianToCartographic(primitive.billboard.position, resultPoint);
-                    return true;
-                }
-            } else {
-                if (drawingType === DrawingTypes.DRAWING_CIRCLE) {
-                    var cartesianArray = this.ellipsoid.cartographicArrayToCartesianArray([Rectangle.southwest(this.extent), Rectangle.northeast(this.extent)]);
-                    return primitive.center.x >= cartesianArray[0].x - primitive.radius && primitive.center.x <= cartesianArray[1].x + primitive.radius && primitive.center.y >= cartesianArray[0].y - primitive.radius && primitive.center.y <= cartesianArray[1].y + primitive.radius;
-                }
-                if (drawingType === DrawingTypes.DRAWING_RECTANGLE) {
-                    return primitive !== this && this.extent.west <= primitive.extent.east && this.extent.east >= primitive.extent.west && this.extent.south <= primitive.extent.north && this.extent.north >= primitive.extent.south;
-                }
-                if (drawingType === DrawingTypes.DRAWING_MODEL) {
-                    if (defined(primitive.length)) {
-                        for (var i = 0; i < primitive.length; i++) {
-                            var model = primitive.get(i);
-                            if ( Rectangle.contains(this.extent, resultPoint)) {
-                                resultPoint = this.ellipsoid.cartesianToCartographic(model.position, resultPoint);
-                                return true;
-                            }
-                        }
-                    } else if ( Rectangle.contains(this.extent, resultPoint)) {
-                        resultPoint = this.ellipsoid.cartesianToCartographic(primitive.position, resultPoint);
-                        return true;
-                    }
-                }
-            }
-            return false;
+        RectanglePrimitive.prototype.getRectangleBounding = function(){
+            return this.extent;
         };
+
 
         RectanglePrimitive.prototype.toJson = function() {
             if (defined(this.extent)) {
