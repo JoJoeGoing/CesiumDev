@@ -22,6 +22,7 @@ define(['../Core/defined',
         '../Scene/PrimitiveCollection',
         '../Scene/BillboardCollection',
         '../Scene/LabelCollection',
+        '../Scene/Cesium3DTileset',
         '../Widgets/getElement',
         './DrawingTypes',
         './DrawingEvent',
@@ -37,8 +38,8 @@ define(['../Core/defined',
         DeveloperError, createGuid, Cartesian2,
         Cartesian3, CesiumMath, defaultValue, Ellipsoid, EllipsoidGeodesic,
         ScreenSpaceEventHandler, ScreenSpaceEventType, Color, Rectangle, buildModuleUrl,
-        Cartographic, Event, AssociativeArray, SceneTransforms, HeightReference, PrimitiveCollection, BillboardCollection, LabelCollection, getElement,
-        DrawingTypes, DrawingEvent, CirclePrimitive, RectanglePrimitive, PolylinePrimitive, PolygonPrimitive, Marker,ModelPrimitive, pickGlobe) {
+        Cartographic, Event, AssociativeArray, SceneTransforms, HeightReference, PrimitiveCollection, BillboardCollection, LabelCollection, Cesium3DTileset, getElement,
+        DrawingTypes, DrawingEvent, CirclePrimitive, RectanglePrimitive, PolylinePrimitive, PolygonPrimitive, Marker, ModelPrimitive, pickGlobe) {
         'use strict';
         var screenPosition = new Cartesian2();
         var ellipsoid = Ellipsoid.WGS84;
@@ -73,7 +74,7 @@ define(['../Core/defined',
                 if (null !== movement.position) {
 
                     var pickedFeature = scene.pick(movement.position);
-                    if (defined(pickedFeature)) {
+                    if (defined(pickedFeature) && pickedFeature.primitive instanceof Cesium3DTileset) {
                         var cartesian3 = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
                         height = Cartographic.fromCartesian(cartesian3).height;
                     }
@@ -172,7 +173,7 @@ define(['../Core/defined',
             manager._mouseHandler.setInputAction(function (movement) {
                 if (null !== movement.position) {
                     var pickedFeature = scene.pick(movement.position);
-                    if (defined(pickedFeature)) {
+                    if (defined(pickedFeature) && pickedFeature.primitive instanceof Cesium3DTileset) {
                         var cartesian3 = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
                         height = Cartographic.fromCartesian(cartesian3).height;
                     }
@@ -262,7 +263,7 @@ define(['../Core/defined',
             manager._mouseHandler.setInputAction(function (movement) {
                 if (null !== movement.position) {
                     var pickedFeature = scene.pick(movement.position);
-                    if (defined(pickedFeature)) {
+                    if (defined(pickedFeature) && pickedFeature.primitive instanceof Cesium3DTileset) {
                         var cart = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
                         height = Cartographic.fromCartesian(cart).height;
                     }
@@ -320,7 +321,7 @@ define(['../Core/defined',
             manager._mouseHandler.setInputAction(function (movement) {
                 if (null !== movement.position) {
                     var pickedFeature = scene.pick(movement.position);
-                    if (defined(pickedFeature)) {
+                    if (defined(pickedFeature) && pickedFeature.primitive instanceof Cesium3DTileset) {
                         var cart = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
                         height = Cartographic.fromCartesian(cart).height;
                     }
@@ -340,7 +341,7 @@ define(['../Core/defined',
                             model = new ModelPrimitive(options);
                             //todo 未添加tittle
                             manager.drawPrimitives.add(model.model);
-                            manager.models.set(model.id,model);
+                            manager.models.set(model.id, model);
                         }
 
                         manager._dispatchOverlayComplete(model, [center], {
@@ -384,7 +385,7 @@ define(['../Core/defined',
             manager._mouseHandler.setInputAction(function (movement) {
                 if (null !== movement.position) {
                     var pickedFeature = scene.pick(movement.position);
-                    if (defined(pickedFeature) && defined(pickedFeature.content)) {
+                    if (defined(pickedFeature) && pickedFeature.primitive instanceof Cesium3DTileset) {
                         var cartesian3 = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
                         height = Cartographic.fromCartesian(cartesian3).height;
                     }
@@ -617,7 +618,7 @@ define(['../Core/defined',
                 var method = drawHandler[type];
                 if (method) {
                     options = options || {};
-                    options.properties = options.properties||{};
+                    options.properties = options.properties || {};
                     if (typeof saveToBuffer !== 'boolean') {
                         saveToBuffer = false;
                     }
