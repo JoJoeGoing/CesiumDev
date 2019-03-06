@@ -201,6 +201,24 @@
                 viewer: viewer,
                 url: 'http://180.167.113.51:9090/beyonserver/wfs'
             });
+            var longitude = 114.27598784050004;
+            var latitude = 30.601679447398826;
+            var height = 0;
+            var heading = 0;
+            var tileset = new Cesium.Cesium3DTileset({
+                url: 'http://localhost:8080/data/wuhan_3dtiles/tileset.json'
+            });
+            viewer.scene.primitives.add(tileset);
+            tileset.readyPromise.then(function(argument) {
+                var position = Cesium.Cartesian3.fromDegrees(longitude, latitude, height);
+                var mat = Cesium.Transforms.eastNorthUpToFixedFrame(position);
+                var rotationX = Cesium.Matrix4.fromRotationTranslation(Cesium.Matrix3.fromRotationZ(Cesium.Math.toRadians(heading)));
+                Cesium.Matrix4.multiply(mat, rotationX, mat);
+                tileset._root.transform = mat;
+                viewer.camera.flyTo({destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, height + 1000)});
+            });
+
+
             initTree(Cesium);
             var handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
             handler.setInputAction(function (movement) {
