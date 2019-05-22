@@ -1,3 +1,5 @@
+/*global Cesium */
+/*eslint-env browser*/
 function _createImageryProvider(options) {
     options = Cesium.defaultValue(options, {});
     var request = options.request;
@@ -17,9 +19,8 @@ function _createImageryProvider(options) {
                 },
                 minimumLevel: options.minimumLevel || 0,
                 maximumLevel: options.maximumLevel,
-
                 enablePickFeatures: false
-            })
+            });
             break;
         case 'XYZ':
             provider = new Cesium.UrlTemplateImageryProvider({
@@ -27,7 +28,7 @@ function _createImageryProvider(options) {
                 enablePickFeatures: false,
                 tilingScheme: new Cesium.WebMercatorTilingScheme(),
                 hasAlphaChannel: options.transparent || false
-            })
+            });
             break;
     }
     return provider;
@@ -103,17 +104,16 @@ Object.defineProperties(CZMTools.prototype, {
  * @param pitch
  */
 CZMTools.prototype.flyTo = function (lon, lat, height, pitch) {
-    if (typeof (lon) === "undefined" || typeof (lat) === "undefined" || isNaN(lon) || isNaN(lat)) {
-        alert("经纬度不能为空！！！");
+    if (typeof (lon) === 'undefined' || typeof (lat) === 'undefined' || isNaN(lon) || isNaN(lat)) {
         return;
     }
 
-    if (typeof (height) === "undefined") {
+    if (typeof (height) === 'undefined') {
         var cameroCartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(this.viewer.camera.position);
         height = cameroCartographic.height;
     }
 
-    if (typeof (pitch) === "undefined") {
+    if (typeof (pitch) === 'undefined') {
         this.viewer.camera.flyTo({
             destination: Cesium.Cartesian3.fromDegrees(lon, lat, height)
         });
@@ -146,7 +146,7 @@ CZMTools.prototype.exchangeBaseLayer = function (options) {
     var imagelayer = new Cesium.ImageryLayer(this._createImageryProvider(options), {
         show: true,
         name: '基础图层'
-    })
+    });
 
     this.viewer.imageryLayers.add(imagelayer, 0);
     this._baselayer = options;
@@ -161,9 +161,7 @@ CZMTools.prototype.exchangeBaseLayer = function (options) {
             layer.name = name || 'default name';
             Cesium.knockout.track(layer, ['alpha', 'show', 'name']);
         }
-    }
-
-  
+    };
 
     CZMTools.prototype.showMousePosition = function () {
         var viewer = this._viewer;
@@ -187,5 +185,5 @@ CZMTools.prototype.exchangeBaseLayer = function (options) {
                 }
             },
             Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-    }
-}
+    };
+};

@@ -84,19 +84,12 @@
         var circleSelect = document.getElementById('circleSelect');
         if (circleSelect) {
             circleSelect.addEventListener('click', function () {
-                drawer.removeEventListener('circleComplete');
-                drawer.addEventListener('circleComplete', function (type, object) {
-                    // console.log(object);
-                    var primitive = object.primitive;
-                    if (primitive) {
-                        var rectangle = primitive.getRectangleBounding();
-                        var list = layerManager.search(rectangle);
-                        console.log(list);
-                    }
-                });
-                drawer.draw('circle', true, {
+    
+                drawer.draw('circle', {
                     customId: 'circle'
-                });
+                },function (type, object) {
+                     console.log(object);
+                }, true);
             });
         }
 
@@ -104,18 +97,15 @@
         if (rectangleSelect) {
             rectangleSelect.addEventListener('click', function () {
 
-                drawer.removeEventListener('rectangleComplete');
-                drawer.addEventListener('rectangleComplete', function (type, object) {
-                    // console.log(object);
+                drawer.draw('rectangle',true, {
+                    customId: 'rectangle'
+                },function (type, object) {
                     var primitive = object.primitive;
                     if (primitive) {
                         var rectangle = primitive.getRectangleBounding();
-                        var list = layerManager.search(rectangle);
-                        console.log(list);
+                        //var list = layerManager.search(rectangle);
+                        console.log(rectangle);
                     }
-                });
-                drawer.draw('rectangle',true, {
-                    customId: 'rectangle'
                 });
             });
         }
@@ -123,36 +113,36 @@
         var polyline = document.getElementById('polyline');
         if (polyline) {
             polyline.addEventListener('click', function () {
-                drawer.draw('Polyline', true, {
+                drawer.draw('Polyline', {
                     arrow: true
-                });
+                }, true);
             });
         }
 
         var polygon = document.getElementById('polygon');
         if (polygon) {
             polygon.addEventListener('click', function () {
-                drawer.draw('polygon', true);
+                drawer.draw('polygon',undefined,undefined, true);
             });
         }
 
         var billbord = document.getElementById('billbord');
         if (billbord) {
             billbord.addEventListener('click', function () {
-                drawer.draw('marker', false, {
+                drawer.draw('marker', {
                     showLabel: false,
                     properties: {
                         name: 'test',
                         age: 18
                     }
-                });
+                },undefined, false);
             });
         }
 
         var suspect = document.getElementById('suspect');
         if (suspect) {
             suspect.addEventListener('click', function () {
-                drawer.draw('marker', false, {
+                drawer.draw('marker', {
                     id: '123456789',
                     showLabel: true,
                     properties: {
@@ -167,14 +157,14 @@
                         scale: 4
                     }
 
-                });
+                },undefined, false);
             });
         }
 
         var model = document.getElementById('model');
         if (model) {
             model.addEventListener('click', function () {
-                drawer.draw('model', false, {
+                drawer.draw('model', {
                     properties: {
                         '名字': '恐龙',
                         '描述': '就问你怕不怕'
@@ -182,7 +172,7 @@
                     modelStyle: {
                         scale: 20000,
                     }
-                });
+                },undefined);
 
             });
         }
@@ -228,11 +218,11 @@
                 }
             }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-            drawer = new Cesium.DrawingManager(viewer);
+            drawer = new Cesium.DrawHelper(viewer);
 
-            drawer.addEventListener(Cesium.DrawingTypes.DRAWING_CIRCLE, function (type, object) {
-                console.log(object);
-            });
+            // drawer.addEventListener(Cesium.DrawingTypes.DRAWING_CIRCLE, function (type, object) {
+            //     console.log(object);
+            // });
             initTree(Cesium);
         }
 
@@ -245,15 +235,15 @@
                 maximumLevel: 18,
                 enablePickFeatures: false
             });
-            var terrainProvider = new Cesium.CesiumTerrainProvider({
-                url:' http://192.168.28.190:8081/3d_map/data/dem'
-            });
+            // var terrainProvider = new Cesium.CesiumTerrainProvider({
+            //     url:' http://192.168.28.190:8081/3d_map/data/dem'
+            // });
 
 
             var viewer = new Cesium.Viewer('contain', {
                 imageryProvider: domProvider,
                 baseLayerPicker: false,
-                terrainProvider:terrainProvider,
+                //terrainProvider:terrainProvider,
                 animation: false,
                 timeline: false,
                 homeButton: false,

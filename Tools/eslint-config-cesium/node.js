@@ -12,7 +12,8 @@ module.exports = {
         'global-require': 'error',
         'no-buffer-constructor': 'error',
         'no-new-require': 'error',
-        'no-var': 'error',
+        'no-var': 'off',
+        'strict':'off',
         'prefer-const': 'error'
     }
 };

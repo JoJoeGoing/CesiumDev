@@ -45,7 +45,6 @@ define(['../../Core/defined',
     ) {
         'use strict';
 
-
         function ModelPrimitive(options) {
             options = defaultValue(options, defaultValue.EMPTY_OBJECT);
 
