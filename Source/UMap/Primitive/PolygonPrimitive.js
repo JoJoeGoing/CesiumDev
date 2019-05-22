@@ -15,13 +15,14 @@ define(['../../Core/defined',
     '../../Scene/PerInstanceColorAppearance',
     '../../Scene/Material',
     '../DrawingTypes',
-    './ChangeablePrimitive'
+    './ChangeablePrimitive',
+    './BillboardGroup'
 ], function (defined, defaultValue, Ellipsoid,
     Cartesian3, PolygonGeometry,
     PolygonOutlineGeometry, CesiumMath, buildModuleUrl,
     ScreenSpaceEventType, ScreenSpaceEventHandler,
     EllipsoidGeodesic, Color, HeightReference, EllipsoidSurfaceAppearance, PerInstanceColorAppearance, Material, DrawingTypes,
-    ChangeablePrimitive) {
+    ChangeablePrimitive,BillboardGroup) {
     'use strict';
 
     var dragBillboard = (buildModuleUrl('Widgets/Images/DrawingManager/dragIcon.png'), {

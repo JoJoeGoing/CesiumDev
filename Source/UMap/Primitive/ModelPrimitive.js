@@ -46,7 +46,6 @@ define(['../../Core/defined',
         'use strict';
 
 
-
         function ModelPrimitive(options) {
             options = defaultValue(options, defaultValue.EMPTY_OBJECT);
 
@@ -90,18 +89,11 @@ define(['../../Core/defined',
             var labelStyle = defaultValue(options.labelStyle, OptionsUtil.label);
             var labelOptions = combine(label, labelStyle, false);
 
-
-
-
-            if (this._showLabel) {
-                addLabel(modelCollection, self, this._position, this._name, this._imageHeight, this._imageWidth);
-
-            }
-
+            // if (this._showLabel) {
+            //     addLabel(modelCollection, self, this._position, this._name, this._imageHeight, this._imageWidth);
+            // }
             createModel(modelOptions, this);
-
         }
-
 
         function createModel(options, primitive) {
             options = options || {};
@@ -123,29 +115,28 @@ define(['../../Core/defined',
             primitive._model = model;
         }
 
-
-
+        //TODO： Direction 未引用
         function addLabel(modelCollection, modelPrimitive, position, text, height, width) {
             var pixelOffset = Cartesian2.ZERO;
             var verticalOrigin = VerticalOrigin.BOTTOM;
             var horizontalOrigin = HorizontalOrigin.CENTER;
-            switch (modelPrimitive._direction) {
-                case Direction.TOP:
-                    pixelOffset = new Cartesian2(-4, -height * modelPrimitive._scale - 3);
-                    verticalOrigin = VerticalOrigin.BOTTOM;
-                    break;
-                case Direction.BOTTOM:
-                    pixelOffset = new Cartesian2(-4, 3);
-                    verticalOrigin = VerticalOrigin.TOP;
-                    break;
-                case Direction.LEFT:
-                    pixelOffset = new Cartesian2(-width * modelPrimitive._scale / 2 - 3 - 4, 0);
-                    horizontalOrigin = HorizontalOrigin.RIGHT;
-                    break;
-                case Direction.RIGHT:
-                    pixelOffset = new Cartesian2(width * modelPrimitive._scale / 2 - 4 + 3, 0);
-                    horizontalOrigin = HorizontalOrigin.LEFT;
-            }
+            // switch (modelPrimitive._direction) {
+            //     case Direction.TOP:
+            //         pixelOffset = new Cartesian2(-4, -height * modelPrimitive._scale - 3);
+            //         verticalOrigin = VerticalOrigin.BOTTOM;
+            //         break;
+            //     case Direction.BOTTOM:
+            //         pixelOffset = new Cartesian2(-4, 3);
+            //         verticalOrigin = VerticalOrigin.TOP;
+            //         break;
+            //     case Direction.LEFT:
+            //         pixelOffset = new Cartesian2(-width * modelPrimitive._scale / 2 - 3 - 4, 0);
+            //         horizontalOrigin = HorizontalOrigin.RIGHT;
+            //         break;
+            //     case Direction.RIGHT:
+            //         pixelOffset = new Cartesian2(width * modelPrimitive._scale / 2 - 4 + 3, 0);
+            //         horizontalOrigin = HorizontalOrigin.LEFT;
+            // }
             modelPrimitive._label = modelCollection._labels.add({
                 position: position,
                 text: text,
@@ -328,7 +319,7 @@ define(['../../Core/defined',
                 get: function () {
                     return this._callback || defaultDescriptCallback;
                 }
-            },
+            }
         });
 
         ModelPrimitive.prototype.updatePosition = function (lon, lat, height) {

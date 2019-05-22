@@ -5,13 +5,14 @@ define(['../../Core/defaultValue',
         '../../Core/defineProperties',
         '../../Core/PinBuilder',
         '../../Core/Color',
+        '../../Core/Rectangle',
         '../../Scene/BillboardCollection',
         '../../Scene/LabelCollection',
         '../../Scene/VerticalOrigin',
         '../../DataSources/EntityCluster',
         './MarkerLayer'
 ], function(defaultValue, defined, DeveloperError, AssociativeArray,
-            defineProperties, PinBuilder, Color, BillboardCollection, LabelCollection, VerticalOrigin,
+            defineProperties, PinBuilder, Color,Rectangle, BillboardCollection, LabelCollection, VerticalOrigin,
             EntityCluster, MarkerLayer) {
     'use strict';
 
@@ -171,7 +172,6 @@ define(['../../Core/defaultValue',
         for(var i = 0; i < markers.length; i ++){
             var layer = markers[i];
             layer.filter(rectangle,result);
-           
         }
         return result;
     };

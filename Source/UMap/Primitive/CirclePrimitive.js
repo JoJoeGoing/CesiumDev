@@ -16,13 +16,14 @@ define(['../../Core/defined',
     '../../Scene/EllipsoidSurfaceAppearance',
     '../../Scene/Material',
     '../DrawingTypes',
-    './ChangeablePrimitive'
+    './ChangeablePrimitive',
+    './BillboardGroup'
 
 ], function (defined, destroyObject, defaultValue, DeveloperError, Cartesian3,
     CircleGeometry, CircleOutlineGeometry, CesiumMath, Color, buildModuleUrl,
     ScreenSpaceEventType, ScreenSpaceEventHandler, Rectangle, Ellipsoid,
     HeightReference, EllipsoidSurfaceAppearance, Material, DrawingTypes,
-    ChangeablePrimitive) {
+    ChangeablePrimitive,BillboardGroup) {
     'use strict';
 
     var defaultOptions = {

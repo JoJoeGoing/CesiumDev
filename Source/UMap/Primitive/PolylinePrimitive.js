@@ -20,7 +20,8 @@ define(['../../Core/defined',
     '../../Scene/GroundPolylinePrimitive',
     '../../Scene/Material',
     '../DrawingTypes',
-    './ChangeablePrimitive'
+    './ChangeablePrimitive',
+    './BillboardGroup'
 ], function (defined, DeveloperError, defaultValue, Ellipsoid, Cartesian3,
     Color, Cartographic, PolylineGeometry,
     Math, Extent, buildModuleUrl,
