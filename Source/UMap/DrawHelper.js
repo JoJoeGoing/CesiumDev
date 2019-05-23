@@ -1,31 +1,23 @@
+/*global document*/
+// eslint-disable-next-line no-undef
 define(['../Core/defined',
         '../Core/defineProperties',
-        '../Core/destroyObject',
         '../Core/DeveloperError',
         '../Core/createGuid',
-        '../Core/Cartesian2',
         '../Core/Cartesian3',
         '../Core/Math',
-        '../Core/defaultValue',
         '../Core/Ellipsoid',
         '../Core/EllipsoidGeodesic',
         '../Core/ScreenSpaceEventHandler',
         '../Core/ScreenSpaceEventType',
-        '../Core/Color',
         '../Core/Rectangle',
-        '../Core/buildModuleUrl',
         '../Core/Cartographic',
-        '../Core/Event',
         '../Core/AssociativeArray',
-        '../Scene/SceneTransforms',
-        '../Scene/HeightReference',
         '../Scene/PrimitiveCollection',
         '../Scene/BillboardCollection',
         '../Scene/LabelCollection',
         '../Scene/Cesium3DTileset',
-        '../Widgets/getElement',
         './DrawingTypes',
-        './DrawingEvent',
         './Primitive/CirclePrimitive',
         './Primitive/RectanglePrimitive',
         './Primitive/PolylinePrimitive',
@@ -35,12 +27,12 @@ define(['../Core/defined',
         './pickGlobe',
         './PolygonArea'
     ],
-    function (defined, defineProperties, destroyObject,
-        DeveloperError, createGuid, Cartesian2,
-        Cartesian3, CesiumMath, defaultValue, Ellipsoid, EllipsoidGeodesic,
-        ScreenSpaceEventHandler, ScreenSpaceEventType, Color, Rectangle, buildModuleUrl,
-        Cartographic, Event, AssociativeArray, SceneTransforms, HeightReference, PrimitiveCollection, BillboardCollection, LabelCollection, Cesium3DTileset, getElement,
-        DrawingTypes, DrawingEvent, CirclePrimitive, RectanglePrimitive, PolylinePrimitive, PolygonPrimitive, Marker, ModelPrimitive, pickGlobe, PolygonArea) {
+    function (defined, defineProperties,
+        DeveloperError, createGuid,
+        Cartesian3, CesiumMath, Ellipsoid, EllipsoidGeodesic,
+        ScreenSpaceEventHandler, ScreenSpaceEventType, Rectangle,
+        Cartographic, AssociativeArray, PrimitiveCollection, BillboardCollection, LabelCollection, Cesium3DTileset,
+        DrawingTypes, CirclePrimitive, RectanglePrimitive, PolylinePrimitive, PolygonPrimitive, Marker, ModelPrimitive, pickGlobe, PolygonArea) {
 
         var ellipsoid = Ellipsoid.WGS84;
 
@@ -149,7 +141,7 @@ define(['../Core/defined',
             var pickedObject;
             var mouseOutObject;
             var scene = this._scene;
-            var viewer = this._viewer;
+            //var viewer = this._viewer;
             var self = this;
             var isNotLeftUp = true;
             var handler = new ScreenSpaceEventHandler(scene.canvas);
@@ -321,7 +313,7 @@ define(['../Core/defined',
 
         //todo: has problem
         DrawHelper.prototype.setHighlighted = function (shape) {
-            if (this._highlightedSurface && !this._highlightedSurface.isDestroyed() && this._highlightedSurface !== surface) {
+            if (this._highlightedSurface && !this._highlightedSurface.isDestroyed() && this._highlightedSurface !== shape) {
                 this._highlightedSurface.setHighlighted(false);
             }
             this._highlightedSurface = shape;
@@ -774,7 +766,7 @@ define(['../Core/defined',
             manager._drawingMode = DrawingTypes.DRAWING_MARKER;
 
             var scene = manager._scene;
-            var tooltip = manager._tooltip;
+            //var tooltip = manager._tooltip;
             var height = options.height || 0;
             var marker = null;
 
