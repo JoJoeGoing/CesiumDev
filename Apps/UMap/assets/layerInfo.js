@@ -12,17 +12,20 @@
      },
      layerSelectable: 1,
      layerStyle: {
-         graphicYOffset: 0,
+         graphicYOffset: 0,//Y方向偏移量
          imageHeight: '24',
          imageWidth: '24',
-         lines_width: '',
-         lines_zoneColor: '',
-         plane_borderwidth: '',
-         plane_color: '',
-         plane_zoneOpacity: '',
          styleFontColor: '#ff0000',
          styleFontSize: '14px',
-         zoneOpacity: ''
+        //线条
+         lines_width: '',//线宽
+         lines_zoneColor: '',//线的颜色
+         zoneOpacity: '',
+//多边形
+         plane_borderwidth: '',
+         plane_color: '',
+         plane_zoneOpacity: ''
+
      },
      name: '枪机',
      refreshable: 0,
