@@ -22,8 +22,8 @@ define(['../Core/defined',
         './Primitive/RectanglePrimitive',
         './Primitive/PolylinePrimitive',
         './Primitive/PolygonPrimitive',
-        './Primitive/Marker',
         './Primitive/ModelPrimitive',
+        './Primitive/MarkerCollection',
         './pickGlobe',
         './PolygonArea'
     ],
@@ -32,7 +32,7 @@ define(['../Core/defined',
         Cartesian3, CesiumMath, Ellipsoid, EllipsoidGeodesic,
         ScreenSpaceEventHandler, ScreenSpaceEventType, Rectangle,
         Cartographic, AssociativeArray, PrimitiveCollection, BillboardCollection, LabelCollection, Cesium3DTileset,
-        DrawingTypes, CirclePrimitive, RectanglePrimitive, PolylinePrimitive, PolygonPrimitive, Marker, ModelPrimitive, pickGlobe, PolygonArea) {
+        DrawingTypes, CirclePrimitive, RectanglePrimitive, PolylinePrimitive, PolygonPrimitive, ModelPrimitive,MarkerCollection, pickGlobe, PolygonArea) {
 
         var ellipsoid = Ellipsoid.WGS84;
 
@@ -55,25 +55,30 @@ define(['../Core/defined',
             this._id = createGuid();
             this._reDraw = false;
 
+            var collection = new PrimitiveCollection();
+            this._scene.primitives.add(collection);
+            this._drawPrimitives = collection;
             //绘制过程中的所有billboard的集合
-            this._billboardCollection = this._scene.primitives.add(new BillboardCollection({
+            this._billboardCollection = this._drawPrimitives .add(new BillboardCollection({
                 scene: this._scene
             }));
 
             //绘制过程中的所有label的集合
-            this._labelCollection = this._scene.primitives.add(new LabelCollection({
+            this._labelCollection = this._drawPrimitives .add(new LabelCollection({
                 scene: this._scene
             }));
 
-            //存放绘制的二维点，key-value. key是该点的id
-            this._markerCollection = new AssociativeArray();
+            //由于labels、billboards已经加入到 drawPrimitives中，因此重复加入会导致报错
+            this._markerCollection = new MarkerCollection(this._viewer,{
+                labels:this._labelCollection,
+                billboards:this._billboardCollection
+            });
 
+            //this._drawPrimitives.add(this._markerCollection);
+
+            //todo:model primitive 未使用modelCollection
             //存放绘制的三维模型
             this._modelCollection = new AssociativeArray();
-
-            var collection = new PrimitiveCollection();
-            this._scene.primitives.add(collection);
-            this._drawPrimitives = collection;
 
             this._drawingMode = DrawingTypes.DRAWING_NONE;
 
@@ -760,7 +765,7 @@ define(['../Core/defined',
             _drawPoly(manager, options, true, callback, saveToBuffer);
         }
 
-        //todo:点击绘制时会弹出info框
+        //todo:绘制完成的那次点击会自动弹出info框
         function drawMarker(manager, options,callback) {
 
             manager._drawingMode = DrawingTypes.DRAWING_MARKER;
@@ -775,11 +780,7 @@ define(['../Core/defined',
             }
             if (!defined(marker)) {
                 options.viewer = manager.viewer;
-                marker = new Marker(options, {
-                    billboards: manager._billboardCollection,
-                    labels: manager._labelCollection
-                });
-                manager.markers.set(marker.id, marker);
+                marker = manager.markers.add(options);
             }
 
             manager.startDrawing();
@@ -796,6 +797,7 @@ define(['../Core/defined',
                         var center = ellipsoid.cartesianToCartographic(cartesian3);
                         var precision = CesiumMath.EPSILON7;
                         var points = [Cartographic.fromRadians(center.longitude - precision, center.latitude - precision, center.height), Cartographic.fromRadians(center.longitude + precision, center.latitude + precision, center.height)];
+
                         marker.position = cartesian3;
                         if (callback) {
                             callback(manager._drawingMode, {
