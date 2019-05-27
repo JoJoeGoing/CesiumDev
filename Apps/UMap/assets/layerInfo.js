@@ -2,7 +2,7 @@
  var layerInfo = {
      code: ['653201', '653221', '653222', '653223', '653224', '653225', '653226', '653227', '653200000000'],
      codeName: 'org_code',
-     imgPath: 'https://192.168.28.219:88/static/img/map/',
+     imgPath: 'camera_qiangji.png',
      labelField: 'name',
      layerCategory: 'camera_qiangji',
      layerIcons: ['camera_qiangji_normal.png', 'camera_qiangji_multiple.png', 'camera_qiangji_select.png', 'camera_qiangji_multiple_selected.png'],
