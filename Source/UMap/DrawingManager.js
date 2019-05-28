@@ -32,16 +32,17 @@ define(['../Core/defined',
         './Primitive/PolygonPrimitive',
         './Primitive/Marker',
         './Primitive/ModelPrimitive',
-        './pickGlobe'
+        './pickGlobe',
+        './PolygonArea'
     ],
     function (defined, defineProperties, destroyObject,
         DeveloperError, createGuid, Cartesian2,
         Cartesian3, CesiumMath, defaultValue, Ellipsoid, EllipsoidGeodesic,
         ScreenSpaceEventHandler, ScreenSpaceEventType, Color, Rectangle, buildModuleUrl,
         Cartographic, Event, AssociativeArray, SceneTransforms, HeightReference, PrimitiveCollection, BillboardCollection, LabelCollection, Cesium3DTileset, getElement,
-        DrawingTypes, DrawingEvent, CirclePrimitive, RectanglePrimitive, PolylinePrimitive, PolygonPrimitive, Marker, ModelPrimitive, pickGlobe) {
+        DrawingTypes, DrawingEvent, CirclePrimitive, RectanglePrimitive, PolylinePrimitive, PolygonPrimitive, Marker, ModelPrimitive, pickGlobe,PolygonArea) {
         'use strict';
-        var screenPosition = new Cartesian2();
+        //var screenPosition = new Cartesian2();
         var ellipsoid = Ellipsoid.WGS84;
         var defaultBillboard = {
             url: buildModuleUrl('Widgets/Images/DrawingManager/dragIcon.png'),
@@ -168,25 +169,25 @@ define(['../Core/defined',
             var tooltip = manager._tooltip;
             var baseCartographic = null;
             var extentPrimitive = null;
-            var height = options.height;
+            var height = options.height || 0;
 
             manager._mouseHandler.setInputAction(function (movement) {
                 if (null !== movement.position) {
                     var pickedFeature = scene.pick(movement.position);
                     if (defined(pickedFeature) && pickedFeature.primitive instanceof Cesium3DTileset) {
                         var cartesian3 = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
-                        height = Cartographic.fromCartesian(cartesian3).height;
+                        height += Cartographic.fromCartesian(cartesian3).height;
                     }
-                    var position = pickGlobe(scene, movement.position, options.aboveHeight);
+                    var position = pickGlobe(scene, movement.position, height);
                     if (position && null === extentPrimitive) {
                         if (defined(scene)) {
                             scene.refreshAlways = true;
                         }
                         baseCartographic = ellipsoid.cartesianToCartographic(position);
-                        height = defined(height) ? height : baseCartographic.height;
-                        if (defined(options.aboveHeight)) {
-                            height += options.aboveHeight;
-                        }
+                        // height = defined(height) ? height : baseCartographic.height;
+                        // if (defined(options.aboveHeight)) {
+                        //     height += options.aboveHeight;
+                        // }
                         options.extent = getExtend(baseCartographic, baseCartographic);
                         options.height = height;
                         extentPrimitive = new RectanglePrimitive(options);
@@ -209,7 +210,8 @@ define(['../Core/defined',
 
             manager._mouseHandler.setInputAction(function (movement) {
                 if (manager._reDraw && null !== movement.position) {
-                    var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
+                   // var position = scene.camera.pickEllipsoid(movement.position, ellipsoid);
+                    var position = pickGlobe(scene, movement.position, height);
                     if (position && null !== extentPrimitive) {
                         var cartographic = ellipsoid.cartesianToCartographic(position);
                         var rectangle = getExtend(baseCartographic, cartographic);
@@ -265,7 +267,7 @@ define(['../Core/defined',
                     var pickedFeature = scene.pick(movement.position);
                     if (defined(pickedFeature) && pickedFeature.primitive instanceof Cesium3DTileset) {
                         var cart = pickedFeature.content._tile._boundingVolume._boundingSphere.center;
-                        height = Cartographic.fromCartesian(cart).height;
+                        height += Cartographic.fromCartesian(cart).height;
                     }
                     var cartesian3 = pickGlobe(scene, movement.position, height);
                     if (cartesian3) {
@@ -314,7 +316,7 @@ define(['../Core/defined',
             var height = options.height || 0;
             var model = null;
 
-            if (define(options.id)) {
+            if (defined(options.id)) {
                 model = manager.models.get(options.id);
             }
 
@@ -572,7 +574,6 @@ define(['../Core/defined',
                 drawingManager.prototype._className = className;
             }
         }(DrawingManager, DrawingEvent, 'DrawingManager'));
-
 
         defineProperties(DrawingManager.prototype, {
             container: {
@@ -1037,7 +1038,7 @@ define(['../Core/defined',
 
             Tooltip.prototype.setVisible = function (visible) {
                 this._div.style.display = visible ? 'block' : 'none';
-                this._title.innerHTML = "";
+                this._title.innerHTML = '';
             };
             Tooltip.prototype.setAllVisible = function (visible) {
                 this.setVisible(visible);

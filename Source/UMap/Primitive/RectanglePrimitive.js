@@ -18,13 +18,14 @@ define(['../../Core/defined',
      '../../Scene/Material',
      '../DrawingTypes',
      './ChangeablePrimitive',
+     './BillboardGroup'
      ], function(defined, destroyObject, DeveloperError,
                                    defaultValue, Ellipsoid, Cartographic,
                                    Rectangle, RectangleGeometry, RectangleOutlineGeometry,
                                    CesiumMath, Color, ScreenSpaceEventType,
                                    ScreenSpaceEventHandler, buildModuleUrl, Cartesian3,
                                    HeightReference, EllipsoidSurfaceAppearance, Material,
-                                   DrawingTypes,  ChangeablePrimitive) {
+                                   DrawingTypes,  ChangeablePrimitive,BillboardGroup) {
         'use strict';
 
         var defaultRectangleOptions = {

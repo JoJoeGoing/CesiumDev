@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Use correct character set. -->
+    <meta charset="utf-8">
+    <!-- Tell IE to use the latest, best version. -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Make the application on mobile take up the full browser screen and disable user scaling. -->
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>Hello World!</title>
+    <script src="../Build/Cesium/Cesium.js"></script>
+    <style>
+        @import url(../Build/Cesium/Widgets/widgets.css);
+
+        html,
+        body,
+        #cesiumContainer {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="cesiumContainer"></div>
+
+    <script>
+        var pointData = [
+            [31.0840587516, 121.5301772615],
+            [31.0842907516, 121.5307252615],
+            [31.0847737516, 121.5305362615]
+        ];
+
+        var modelUrl = './SampleData/models/CesiumMilkTruck/CesiumMilkTruck.glb';
+
+        var tilesUrl = 'http://localhost:8081/static/tiles/unistrong/tileset.json';
+
+        var domProvider = new Cesium.WebMapServiceImageryProvider({
+            url: 'http://180.167.113.51:9090/beyonserver/wms',
+            layers: 'beyondb:img_glob_0_7',
+            format: 'image/jpeg',
+            maximumLevel: 18,
+            enablePickFeatures: false
+        });
+        var terrainProvider = new Cesium.CesiumTerrainProvider({
+            url: ' http://192.168.28.190:8081/3d_map/data/dem'
+        });
+
+
+        var viewer = new Cesium.Viewer(cesiumContainer, {
+            imageryProvider: domProvider,
+            baseLayerPicker: false,
+            terrainProvider: terrainProvider,
+            timeline: false,
+            homeButton: false,
+            geocoder: false,
+            navigationHelpButton: false,
+            fullscreenButton: false,
+            scene3DOnly: true,
+            infoBox: true,
+            selectionIndicator: false,
+            contextOptions: {
+                allowTextureFilterAnisotropic: false,
+                webgl: {
+                    preserveDrawingBuffer: true
+                }
+            }
+        });
+
+        viewer.scene.fog.enabled = false;
+        var scene = viewer.scene;
+        var tileset = new Cesium.Cesium3DTileset({
+            url: tilesUrl
+        });
+        scene.primitives.add(tileset);
+        viewer.zoomTo(tileset);
+
+
+       // Cesium.Math.setRandomNumberSeed(3);
+
+        //Set bounds of our simulation time
+        var start = Cesium.JulianDate.fromDate(new Date(2015, 2, 25, 16));
+        var stop = Cesium.JulianDate.addSeconds(start, 20, new Cesium.JulianDate());
+
+        //Make sure viewer is at the desired time.
+        viewer.clock.startTime = start.clone();
+        viewer.clock.stopTime = stop.clone();
+        viewer.clock.currentTime = start.clone();
+        viewer.clock.clockRange = Cesium.ClockRange.CLAMPED; //Loop at the end
+        viewer.clock.multiplier = 1;
+        viewer.clock.shouldAnimate = true;
+
+        //Set timeline to simulation bounds
+        //viewer.timeline.zoomTo(start, stop);
+
+
+        var pos1 = Cesium.Cartesian3.fromDegrees(pointData[0][1], pointData[0][0],25);
+        var pos2 = Cesium.Cartesian3.fromDegrees(pointData[1][1], pointData[1][0],25);
+        var position = new Cesium.SampledPositionProperty();
+
+        position.addSample(start, pos1);
+        position.addSample(stop, pos2);
+
+        var entity = viewer.entities.add({
+            // availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+            //     start: start,
+            //     stop: stop
+            // })]),
+            model: {
+                uri: modelUrl,
+                minimumPixelSize: 64
+            },
+           // viewFrom: new Cesium.Cartesian3(-100.0, 0.0, 10.0),
+            position: position,
+            orientation: new Cesium.VelocityOrientationProperty(position)
+        });
+
+
+
+        // var czml = [{
+        //     "id": "document",
+        //     "name": "polygon",
+        //     "version": "1.0",
+        //     "clock": {
+        //         "interval": "2012-08-04T16:00:00Z/2012-08-04T18:00:00Z",
+        //         "currentTime": "2012-08-04T16:00:00Z",
+        //         "multiplier": 10
+        //     }
+        // }, {
+        //     "id": "shape2",
+        //     "name": "Red box with black outline",
+        //     "availability": "2012-08-04T16:00:00Z/2012-08-04T18:00:00Z",
+        //     /*"position" : {
+        //     	"cartographicDegrees" : [-66.62557, 516.92809, 100.0]
+        //     },*/
+        //     // "box": {
+        //     //     "dimensions": {
+        //     //         "cartesian": [30.0, 30.0]
+        //     //     },
+        //     //     "material": {
+        //     //         "stripe": {
+        //     //             "orientation": "VERTICAL",
+        //     //             "evenColor": {
+        //     //                 "rgba": [10, 211, 250, 0]
+        //     //             },
+        //     //             "oddColor": {
+        //     //                 "rgba": [10, 211, 250, 255]
+        //     //             },
+        //     //             "offset": {
+        //     //                 "number": 1
+        //     //             },
+        //     //             "repeat": 0.5
+        //     //         }
+        //     //     },
+        //     // },
+        //     "model": {
+        //         "gltf": "./SampleData/models/CesiumMilkTruck/CesiumMilkTruck.glb",
+        //         "minimumPixelSize": 100,
+        //         "maximumScale": 50
+        //     },
+        //     // "path": {
+        //     //     "material": {
+        //     //         "solidColor": {
+        //     //             "color": {
+        //     //                 "interval": "2012-08-04T16:00:00Z/2012-08-04T18:00:00Z",
+        //     //                 "rgba": [255, 0, 0, 128]
+        //     //             }
+        //     //         }
+        //     //     },
+        //     //     "width": [{
+        //     //         "interval": "2012-08-04T16:00:00Z/2012-08-04T18:00:00Z",
+        //     //         "number": 3.0
+        //     //     }],
+        //     //     "show": [{
+        //     //         "interval": "2012-08-04T16:00:00Z/2012-08-04T18:00:00Z",
+        //     //         "boolean": true
+        //     //     }]
+        //     // },
+        //     "position": {
+        //         "interpolationAlgorithm": "LAGRANGE",
+        //         "interpolationDegree": 1,
+        //         "epoch": "2012-08-04T16:00:00Z",
+        //         "cartographicDegrees": [
+        //             0.0, 121.5301772615, 31.0840587516, 0.0,
+        //             30.0, 121.5307252615, 31.0842907516, 0.0
+        //         ]
+        //     }
+        // }];
+
+        // var dataSourcePromise;
+        // var i = 30.957024;
+        // var a = 60;
+        // // setInterval(function () {
+        // //     i += 0.0001;
+        // //     a += 10;
+        // //     czml[1].position.cartographicDegrees.push(a, 118.8747338, i, 0);
+        // //     czml[0].clock.currentTime = viewer.clock.currentTime.toString();
+        // //     viewer.entities.removeAll();
+        // //     viewer.dataSources.add(Cesium.CzmlDataSource.load(czml));
+        // // }, 1000);
+
+        // dataSourcePromise = Cesium.CzmlDataSource.load(czml);
+        // viewer.dataSources.add(dataSourcePromise);
+        // viewer.zoomTo(dataSourcePromise);
+    </script>
+</body>
+
+</html>

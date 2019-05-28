@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>可视域分析</title>
+    <script type="text/javascript" src="../../ThirdParty/requirejs-2.1.20/require.js"></script>
+    <script type="text/javascript">
+        if (typeof require === 'function') {
+            require.config({
+                baseUrl : '../../Source',
+                waitSeconds : 120
+            });
+        }
+    </script>
+</head>
+
+<body>
+<style>
+    @import url(../Sandcastle/templates/bucket.css);
+
+    #cesiumContainer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        overflow: hidden;
+        padding: 0;
+        font-family: sans-serif;
+    }
+</style>
+
+    <div id="cesiumContainer"></div>
+
+    <script>
+      "use strict";
+
+      function startup(Cesium) {
+        var viewer = initCesiumViewer(Cesium);
+
+      }
+
+      function initCesiumViewer(Cesium) {
+        "use strict";
+
+        var domProvider = new Cesium.WebMapServiceImageryProvider({
+          url: "http://180.167.113.51:9090/beyonserver/wms",
+          layers: "beyondb:img_glob_0_7",
+          format: "image/jpeg",
+          maximumLevel: 18,
+          enablePickFeatures: false
+        });
+        var viewer = new Cesium.Viewer("cesiumContainer", {
+          imageryProvider: domProvider,
+          baseLayerPicker: false,
+          animation: false,
+          timeline: false,
+          homeButton: false,
+          geocoder: false,
+          navigationHelpButton: false,
+          fullscreenButton: false,
+          scene3DOnly: true,
+          infoBox: true,
+          selectionIndicator: false,
+          contextOptions: {
+            allowTextureFilterAnisotropic: false,
+            webgl: { preserveDrawingBuffer: true }
+          }
+        });
+
+        viewer.scene.fog.enabled = false;
+        viewer.scene.globe.depthTestAgainstTerrain = false;
+        return viewer;
+      }
+
+      if (typeof Cesium !== "undefined") {
+        startup(Cesium);
+      } else if (typeof require === "function") {
+        require(["Cesium"], startup);
+      }
+    </script>
+  </body>
+</html>

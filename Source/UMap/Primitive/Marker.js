@@ -79,7 +79,7 @@ define(['../../Core/createGuid',
             this._billboard._owner = this;
 
             if (this._showLabel) {
-               
+
                 this._label = this._layer.labels.add(labelOptions);
                 this._label._owner = this;
             }
@@ -186,15 +186,16 @@ define(['../../Core/createGuid',
     };
 
     Marker.prototype.filter = function(rectangle){
-      
+
         var cartographic = this.viewer.scene.globe.ellipsoid.cartesianToCartographic(this.position);
-        
+
         if(!cartographic){
             return false;
         }
         //cartographic.height = 0;
         return Rectangle.contains(rectangle, cartographic);
-      
+
     };
+
     return Marker;
 });

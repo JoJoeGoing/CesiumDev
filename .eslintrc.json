@@ -1,20 +1,3 @@
 {
-    "extends": "./Tools/eslint-config-cesium/browser.js",
-    "plugins": [
-        "html"
-    ],
-    "rules": {
-//        "no-unused-vars": [
-//            "error",
-//            {
-//                "vars": "all",
-//                "args": "none"
-//            }
-//        ],
-        "no-trailing-spaces": 1,
-        "no-unused-vars": 1,
-        "no-multiple-empty-lines": 1,
-        "eol-last": 1,
-        "strict": 0
-    }
+    "extends": "./Tools/eslint-config-cesium/node.js"
 }
